@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WEX.API/WEX.API.csproj" />
+    <Project Path="src/WEX.Application/WEX.Application.csproj" />
+    <Project Path="src/WEX.Domain/WEX.Domain.csproj" />
+    <Project Path="src/WEX.Infrastructure/WEX.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WEX.API.IntegrationTests/WEX.API.IntegrationTests.csproj" />
+    <Project Path="tests/WEX.Application.Tests/WEX.Application.Tests.csproj" />
+    <Project Path="tests/WEX.Domain.Tests/WEX.Domain.Tests.csproj" />
+    <Project Path="tests/WEX.Infrastructure.Tests/WEX.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
