@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: wex_postgres
+    environment:
+      POSTGRES_DB: wex_corporate_local
+      POSTGRES_USER: wex_user
+      POSTGRES_PASSWORD: wex_local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - wex_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wex_user -d wex_corporate_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/WEX.API/Dockerfile
+    container_name: wex_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=wex_corporate_local;Username=wex_user;Password=wex_local_password"
+    ports:
+      - "5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: src/WEX.UI
+      dockerfile: Dockerfile
+    container_name: wex_ui
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  wex_postgres_data:

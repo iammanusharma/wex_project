@@ -1,0 +1,27 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## Environment-specific config (never commit secrets)
+src/WEX.API/appsettings.Local.json
+src/WEX.API/appsettings.Production.json
+
+## Logs
+logs/
+*.log
+
+## Docker
+.env
+
+## IDE
+.idea/
+.vscode/settings.json
+*.swp
+
+## OS
+.DS_Store
+Thumbs.db
