@@ -19,9 +19,23 @@ logs/
 
 ## IDE
 .idea/
-.vscode/settings.json
 *.swp
 
 ## OS
 .DS_Store
 Thumbs.db
+
+## Angular
+src/WEX.UI/node_modules/
+src/WEX.UI/dist/
+src/WEX.UI/.angular/
+
+## Playwright
+tests/e2e/node_modules/
+tests/e2e/dist/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+
+## Test output
+TestResults/
+coverage/
