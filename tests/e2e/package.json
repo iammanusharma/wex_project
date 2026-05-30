@@ -1,0 +1,19 @@
+{
+  "name": "wex-e2e",
+  "version": "1.0.0",
+  "description": "Playwright E2E tests for WEX Corporate Payments UI",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ci": "playwright test --reporter=html",
+    "codegen": "playwright codegen"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0"
+  }
+}

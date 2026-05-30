@@ -1,34 +1,105 @@
-var builder = WebApplication.CreateBuilder(args);
+using Asp.Versioning;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using WEX.API.Middleware;
+using WEX.Application;
+using WEX.Infrastructure;
+using WEX.Infrastructure.Persistence;
 
-// Add services to the container.
+// Bootstrap Serilog early to capture startup errors
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+try
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var builder = WebApplication.CreateBuilder(args);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
+    // Serilog — reads full config from appsettings
+    builder.Host.UseSerilog((ctx, lc) =>
+        lc.ReadFrom.Configuration(ctx.Configuration)
+          .Enrich.FromLogContext()
+          .Enrich.WithMachineName()
+          .Enrich.WithThreadId());
 
-app.Run();
+    // Application + Infrastructure layers
+    builder.Services.AddApplication();
+    builder.Services.AddInfrastructure(builder.Configuration);
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    // API versioning
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    }).AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new() { Title = "WEX Corporate Payments API", Version = "v1" });
+        c.IncludeXmlComments(Path.Combine(
+            AppContext.BaseDirectory, "WEX.API.xml"), includeControllerXmlComments: true);
+    });
+
+    // Global exception handler (RFC 7807 Problem Details)
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
+
+    // Health checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<AppDbContext>("database");
+
+    // Security headers
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+    });
+
+    var app = builder.Build();
+
+    // Auto-migrate on startup (dev/local only — use proper migrations in prod)
+    if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+    }
+
+    app.UseExceptionHandler();
+    app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseSerilogRequestLogging();
+
+    if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEX API v1"));
+    }
+
+    app.UseHttpsRedirection();
+    app.MapControllers();
+    app.MapHealthChecks("/health");
+
+    Log.Information("WEX Corporate Payments API starting. Environment: {Environment}",
+        app.Environment.EnvironmentName);
+
+    await app.RunAsync();
 }
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application failed to start");
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}
+
+// Needed for WebApplicationFactory in integration tests
+public partial class Program { }
+
