@@ -64,12 +64,15 @@ try
 
     var app = builder.Build();
 
-    // Auto-migrate on startup (dev/local only — use proper migrations in prod)
+    // Create schema on startup for Local/Development environments.
+    // Uses EnsureCreated() for simplicity — no migration files required.
+    // NOTE: In production, replace with EF Core migrations (dotnet ef database update)
+    // for proper schema versioning, rollback support, and zero-downtime deploys.
     if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+        await db.Database.EnsureCreatedAsync();
     }
 
     app.UseExceptionHandler();
