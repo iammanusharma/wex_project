@@ -66,65 +66,93 @@ public sealed class TreasuryExchangeRateService : IExchangeRateService
     }
 
     private async Task<decimal?> FetchRateFromApiAsync(
-        string currency,
+        string isoCode,
         DateOnly purchaseDate,
         CancellationToken cancellationToken)
     {
+        // Map ISO code (e.g. "EUR") → Treasury name (e.g. "Euro Zone-Euro")
+        var treasuryName = TreasuryCurrencyMapper.GetTreasuryName(isoCode);
+        if (treasuryName is null)
+        {
+            _logger.LogWarning(
+                "Currency {IsoCode} is not in the supported Treasury currency list",
+                isoCode);
+            return null;
+        }
+
         // The requirement states: use rate ≤ purchaseDate within the last 6 months
         var cutoffDate = purchaseDate.AddMonths(-LookbackMonths);
 
-        // Treasury API query:
-        // - filter[currency][eq]=<currency>          — match exact currency name
-        // - filter[record_date][lte]=<purchaseDate>  — on or before purchase date
-        // - filter[record_date][gte]=<cutoffDate>    — within 6 months
-        // - sort=-record_date                         — most recent first
-        // - page[size]=1                              — we only need the closest rate
+        // Treasury API filter syntax: filter=field:op:value,field:op:value
+        // Commas separate multiple conditions (AND logic)
         var url = $"{_options.ExchangeRateEndpoint}" +
-                  $"?filter[currency][eq]={Uri.EscapeDataString(currency)}" +
-                  $"&filter[record_date][lte]={purchaseDate:yyyy-MM-dd}" +
-                  $"&filter[record_date][gte]={cutoffDate:yyyy-MM-dd}" +
+                  $"?filter=country_currency_desc:eq:{Uri.EscapeDataString(treasuryName)}" +
+                  $",record_date:lte:{purchaseDate:yyyy-MM-dd}" +
+                  $",record_date:gte:{cutoffDate:yyyy-MM-dd}" +
                   $"&sort=-record_date" +
                   $"&page[size]=1";
 
         _logger.LogInformation(
-            "Fetching exchange rate from Treasury API. Currency: {Currency}, PurchaseDate: {PurchaseDate}",
-            currency, purchaseDate);
+            "Fetching exchange rate from Treasury API. Currency: {IsoCode} ({TreasuryName}), PurchaseDate: {PurchaseDate}",
+            isoCode, treasuryName, purchaseDate);
 
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<TreasuryRatesResponse>(
-                url, cancellationToken);
+            var httpResponse = await _httpClient.GetAsync(url, cancellationToken);
+
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                var body = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError(
+                    "Treasury API returned {StatusCode}. Currency: {IsoCode}, URL: {Url}, Body: {Body}",
+                    (int)httpResponse.StatusCode, isoCode, url, body);
+                return null;
+            }
+
+            var response = await httpResponse.Content
+                .ReadFromJsonAsync<TreasuryRatesResponse>(cancellationToken: cancellationToken);
 
             var record = response?.Data.FirstOrDefault();
 
             if (record is null)
             {
                 _logger.LogWarning(
-                    "No exchange rate returned from Treasury API. Currency: {Currency}, PurchaseDate: {PurchaseDate}",
-                    currency, purchaseDate);
+                    "No exchange rate returned from Treasury API. Currency: {IsoCode}, PurchaseDate: {PurchaseDate}",
+                    isoCode, purchaseDate);
                 return null;
             }
 
-            if (!decimal.TryParse(record.ExchangeRate, out var rate))
+            if (!decimal.TryParse(
+                    record.ExchangeRate,
+                    System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var rate))
             {
                 _logger.LogError(
-                    "Treasury API returned unparseable exchange rate '{RateString}'. Currency: {Currency}",
-                    record.ExchangeRate, currency);
+                    "Treasury API returned unparseable exchange rate '{RateString}'. Currency: {IsoCode}",
+                    record.ExchangeRate, isoCode);
                 return null;
             }
 
             _logger.LogInformation(
-                "Exchange rate retrieved. Currency: {Currency}, Rate: {Rate}, RecordDate: {RecordDate}",
-                currency, rate, record.RecordDate);
+                "Exchange rate retrieved. Currency: {IsoCode}, Rate: {Rate}, RecordDate: {RecordDate}",
+                isoCode, rate, record.RecordDate);
 
             return rate;
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex,
-                "HTTP error fetching exchange rate. Currency: {Currency}, PurchaseDate: {PurchaseDate}",
-                currency, purchaseDate);
-            throw;
+                "HTTP error fetching exchange rate. Currency: {IsoCode}, PurchaseDate: {PurchaseDate}",
+                isoCode, purchaseDate);
+            return null; // treat network errors as unavailable rather than crashing
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            _logger.LogError(ex,
+                "Failed to deserialize Treasury API response. Currency: {IsoCode}, URL: {Url}",
+                isoCode, url);
+            return null;
         }
     }
 }

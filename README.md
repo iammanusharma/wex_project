@@ -33,26 +33,60 @@ src/
 src/WEX.UI/              # Angular 19 standalone app with Angular Material
 ```
 
+## 🏗️ Architecture
+
+```
+src/
+├── WEX.Domain/          # Entities, Value Objects, Domain Exceptions, Interfaces
+├── WEX.Application/     # CQRS Commands/Queries (MediatR), Validators (FluentValidation)
+├── WEX.Infrastructure/  # EF Core (PostgreSQL), Treasury API client (Polly + IMemoryCache)
+└── WEX.API/             # ASP.NET Core 8 REST API, Serilog, Swagger
+
+src/WEX.UI/              # Angular 19 standalone app with Angular Material
+```
+
 **Key design decisions:**
-- **Clean Architecture** — strict dependency flow: Domain ← Application ← Infrastructure → API
-- **CQRS with MediatR** — Commands (writes) and Queries (reads) are fully separated
-- **FluentValidation pipeline** — validation runs as a MediatR behaviour before every handler
-- **Options pattern** — all config is strongly-typed via `IOptions<T>`, never raw strings
-- **IHttpClientFactory** — manages HTTP connection pooling for Treasury API calls (avoids socket exhaustion)
-- **Polly retry** — exponential backoff (3 retries) on transient Treasury API failures
-- **IMemoryCache** — 60-minute TTL caches exchange rates per currency+date pair
-- `EnsureCreated()` used for local/dev schema creation. In production, replace with EF Core migrations for proper versioning and rollback support.
+- **Clean Architecture** — strict dependency flow: Domain ← Application ← Infrastructure → API. Each layer has a single responsibility and can evolve independently. New developers onboard quickly because the structure is predictable.
+- **CQRS with MediatR** — Commands (writes) and Queries (reads) are fully separated. This scales well as the team grows — developers work on features in parallel without stepping on each other.
+- **FluentValidation pipeline** — validation runs as a MediatR behaviour before every handler. Validation is never forgotten and never duplicated.
+- **Options pattern** — all config is strongly-typed via `IOptions<T>`, never raw strings. Eliminates runtime config errors and makes environment differences explicit.
+- **IHttpClientFactory** — manages HTTP connection pooling for Treasury API calls (avoids socket exhaustion at scale).
+- **Polly retry** — exponential backoff (3 retries) on transient Treasury API failures. Resilience is built in, not bolted on.
+- **IMemoryCache** — 60-minute TTL caches exchange rates per currency+date pair. Reduces external API dependency and latency.
+- **Quality guardrail skills** — VS Code Copilot skills enforce architecture patterns so the codebase stays consistent as the team scales. New developers follow the same patterns from day one without needing a lengthy onboarding session.
+- `EnsureCreated()` is used for local/dev schema creation — no migration files required, so the interviewer can run `docker-compose up` and it just works. In production this would be replaced with EF Core migrations (`dotnet ef migrations add` / `dotnet ef database update`) for proper schema versioning, incremental changes, and rollback support. This was a conscious trade-off: optimise for reviewer simplicity while keeping the production path clear.
 
 ---
 
-## 🚀 Quick Start (Docker — recommended)
+## 🚀 Quick Start
+
+### One-command start (auto-detects Docker)
+
+```bash
+# Clone the repo first
+git clone <repository-url>
+cd wex_project
+
+# Windows
+.\start.ps1
+
+# Mac / Linux
+chmod +x start.sh && ./start.sh
+```
+
+The script detects whether Docker is available:
+- **Docker found** → runs `docker-compose up --build` (zero config needed)
+- **No Docker** → prints step-by-step local setup instructions
+
+---
+
+### Docker (recommended)
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) running
 
 ### Run everything
 ```bash
-git clone <repository-url>
 cd wex_project
 docker-compose up
 ```

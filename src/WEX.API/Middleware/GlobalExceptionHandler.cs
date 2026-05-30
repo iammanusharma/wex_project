@@ -60,6 +60,15 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                     Detail = cce.Message
                 }),
 
+            HttpRequestException hre => (
+                StatusCodes.Status503ServiceUnavailable,
+                new ProblemDetails
+                {
+                    Title = "External service unavailable",
+                    Status = StatusCodes.Status503ServiceUnavailable,
+                    Detail = "The exchange rate service is temporarily unavailable. Please try again later."
+                }),
+
             _ => (
                 StatusCodes.Status500InternalServerError,
                 new ProblemDetails

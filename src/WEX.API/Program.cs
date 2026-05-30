@@ -55,6 +55,19 @@ try
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<AppDbContext>("database");
 
+    // CORS — origins configured per environment in appsettings
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("WexPolicy", policy =>
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod());
+    });
+
     // Security headers
     builder.Services.AddHsts(options =>
     {
@@ -70,9 +83,17 @@ try
     // for proper schema versioning, rollback support, and zero-downtime deploys.
     if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
     {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.EnsureCreatedAsync();
+            Log.Information("Database schema initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Database initialization failed — API will start without database. Connect db and restart to enable data persistence.");
+        }
     }
 
     app.UseExceptionHandler();
@@ -86,6 +107,7 @@ try
     }
 
     app.UseHttpsRedirection();
+    app.UseCors("WexPolicy");
     app.MapControllers();
     app.MapHealthChecks("/health");
 
