@@ -77,6 +77,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             exception.GetType().Name);
 
         httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.ContentType = "application/problem+json";
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
         return true;
     }
