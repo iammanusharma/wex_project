@@ -60,6 +60,15 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                     Detail = cce.Message
                 }),
 
+            WEX.Domain.Exceptions.InvalidCredentialsException => (
+                StatusCodes.Status401Unauthorized,
+                new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Detail = "Invalid username or password."
+                }),
+
             HttpRequestException hre => (
                 StatusCodes.Status503ServiceUnavailable,
                 new ProblemDetails

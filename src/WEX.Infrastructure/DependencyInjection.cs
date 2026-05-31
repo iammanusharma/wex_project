@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
+using WEX.Application.Interfaces;
 using WEX.Domain.Interfaces;
+using WEX.Infrastructure.Auth;
 using WEX.Infrastructure.ExternalServices.Treasury;
 using WEX.Infrastructure.Persistence;
 using WEX.Infrastructure.Repositories;
@@ -27,6 +29,12 @@ public static class DependencyInjection
                 npgsql => npgsql.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
 
         services.AddScoped<IPurchaseTransactionRepository, PurchaseTransactionRepository>();
+
+        // --- Auth ---
+        // Bind JWT options and register token + user services
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddSingleton<IUserStore, InMemoryUserStore>();
 
         // --- Caching ---
         // IMemoryCache used by TreasuryExchangeRateService to avoid repeated API calls

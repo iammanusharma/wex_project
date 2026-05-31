@@ -233,20 +233,130 @@ Retrieve a transaction converted to a foreign currency.
 
 ---
 
-## 🛡️ Quality Guardrails
+## 🛡️ Quality Guardrails & Copilot Skills
 
-This project includes VS Code Copilot skills to maintain quality as the team grows:
+This project ships with a set of **GitHub Copilot Skills** — reusable AI prompt templates that guide every developer to follow the same architecture, naming, and quality rules automatically. They remove the need to memorise conventions and make it safe to onboard new developers quickly.
 
-| Skill | Usage |
+---
+
+### How Skills Work
+
+Skills live in `.github/skills/` and are companion prompt files in `.github/prompts/`. When you open GitHub Copilot Chat in VS Code and type a skill command (e.g. `@workspace /implement-requirement`), Copilot loads the skill's instructions and guides you through the task step-by-step — always enforcing the project's quality rules.
+
+**Prerequisites:**
+- VS Code with GitHub Copilot extension installed
+- `.vscode/settings.json` is committed (wires skills automatically for the whole team)
+- Open the `wex_project/` folder as your workspace root
+
+---
+
+### Available Skills
+
+#### `/implement-requirement`
+**When to use:** Starting a new feature from a business requirement or user story.
+
+**What it does:**
+1. Asks you to paste the requirement text
+2. Analyses it — identifies inputs, outputs, validation rules, edge cases
+3. Produces a full implementation plan across all Clean Architecture layers
+4. Asks for your approval before writing any code
+5. Implements layer-by-layer (Domain → Application → Infrastructure → API → Tests)
+6. Produces a compliance report confirming every quality gate is met
+
+**Benefits:** Ensures no layer is skipped, all error scenarios are considered, and tests are written alongside the feature — not as an afterthought.
+
+---
+
+#### `/add-feature`
+**When to use:** Scaffolding a brand new feature module (new entity, new domain concept).
+
+**What it does:** Creates the full vertical slice — entity, repository interface, domain exceptions, command/query, validator, handler, infrastructure implementation, controller action, and unit tests — all in one guided flow.
+
+**Benefits:** Eliminates the "where do I put this?" question for new developers. Every scaffold follows the same structure.
+
+---
+
+#### `/add-command`
+**When to use:** Adding a write operation (create, update, delete) to an existing feature.
+
+**What it does:** Scaffolds:
+- `{Name}Command.cs` — MediatR `IRequest<T>` record
+- `{Name}CommandValidator.cs` — FluentValidation with `.WithMessage()` on every rule
+- `{Name}CommandHandler.cs` — handler with structured logging, `CancellationToken`, typed exceptions
+- Unit tests — happy path + all failure paths, NSubstitute + FluentAssertions
+
+**Benefits:** Consistent CQRS structure across every command. No forgotten validators, no missing tests.
+
+---
+
+#### `/add-query`
+**When to use:** Adding a read operation (get by ID, search, list) to an existing feature.
+
+**What it does:** Scaffolds:
+- `{Name}Query.cs` + `{Name}Response.cs` — query record and immutable DTO
+- `{Name}QueryValidator.cs` — input validation
+- `{Name}QueryHandler.cs` — handler mapping domain entity → response DTO, never exposing internals
+- Unit tests — found/not-found/business-rule scenarios
+
+**Benefits:** Enforces the rule that domain entities are never leaked to API callers — always mapped to a response DTO.
+
+---
+
+#### `/code-quality-check`
+**When to use:** Before every pull request, or after adding/changing any feature.
+
+**What it does:** Reviews changed files against 8 quality gates:
+| Gate | Checks |
 |---|---|
-| `/implement-requirement` | Guided requirement implementation with explain → plan → approve → implement |
-| `/add-feature` | Scaffold a new feature following Clean Architecture |
-| `/add-command` | Add a new CQRS command with handler + validator + tests |
-| `/add-query` | Add a new CQRS query with handler + validator + tests |
-| `/code-quality-check` | Review code against project architecture rules |
-| `/add-angular-feature` | Scaffold a new Angular feature following project patterns |
+| Architecture | Dependency direction, no DbContext outside Infrastructure |
+| SOLID | Single responsibility, open/closed, dependency inversion |
+| Null safety | Nullable types enabled, no `!` operators without comment |
+| Async | CancellationToken everywhere, no `.Result`/`.Wait()` |
+| Logging | Structured logs, no sensitive data, correct log levels |
+| Security | No raw SQL, no secrets in code, FluentValidation on all inputs |
+| Error handling | Typed exceptions, RFC 7807 Problem Details, no silent catches |
+| Test coverage | Every handler tested, naming convention, no logic in tests |
 
-The project spec (`.github/copilot-instructions.md`) is auto-loaded by GitHub Copilot and enforces architecture rules, naming conventions, logging standards, and testing requirements.
+Produces: **PASS / FAIL** verdict with file:line violations and suggested fixes.
+
+**Benefits:** Acts as a senior code reviewer available to every developer at any time. Catches issues before they reach human review.
+
+---
+
+#### `/add-angular-feature`
+**When to use:** Adding a new page or component to the Angular UI.
+
+**What it does:** Scaffolds a lazy-loaded Angular feature module with component, service, routing, and typed API integration — following the project's Angular structure.
+
+**Benefits:** Consistent Angular patterns across the UI codebase.
+
+---
+
+### Project Spec (Auto-loaded)
+
+`.github/copilot-instructions.md` is automatically loaded by GitHub Copilot for every conversation in this repository. It enforces:
+- Clean Architecture dependency rules
+- C# 12 / .NET 8 coding standards
+- Naming conventions (Commands, Queries, Handlers, Validators)
+- Logging standards (structured, no PII, correct levels)
+- Testing standards (xUnit + NSubstitute + FluentAssertions)
+- Security rules (no raw SQL, secrets via env vars only)
+- Environment configuration table
+
+> **For Engineering Managers:** These skills are the primary mechanism for maintaining consistent quality as the team scales. New developers are productive from day one because the skills encode the architecture decisions. The spec file ensures Copilot never suggests patterns that violate your standards.
+
+---
+
+### Recommended Workflow for New Developers
+
+```
+1. Clone repo → open wex_project/ in VS Code
+2. Install GitHub Copilot extension
+3. Start a new feature? → use /implement-requirement or /add-feature
+4. Adding a command? → /add-command
+5. Adding a query?   → /add-query
+6. Before raising PR → /code-quality-check
+```
 
 ---
 
