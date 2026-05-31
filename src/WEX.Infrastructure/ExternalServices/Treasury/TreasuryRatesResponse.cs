@@ -14,7 +14,11 @@ internal sealed class TreasuryRatesResponse
 
 internal sealed class TreasuryRateRecord
 {
-    /// <summary>ISO 4217 currency code, e.g. "Euro", "Canadian Dollar"</summary>
+    /// <summary>Combined country + currency description, e.g. "Euro Zone-Euro"</summary>
+    [JsonPropertyName("country_currency_desc")]
+    public string CountryCurrencyDesc { get; init; } = string.Empty;
+
+    /// <summary>Currency name, e.g. "Euro"</summary>
     [JsonPropertyName("currency")]
     public string Currency { get; init; } = string.Empty;
 

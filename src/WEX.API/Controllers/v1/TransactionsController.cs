@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WEX.Application.Features.Transactions.Commands.StorePurchaseTransaction;
 using WEX.Application.Features.Transactions.Queries.GetPurchaseInCurrency;
@@ -12,6 +13,7 @@ namespace WEX.API.Controllers.v1;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/transactions")]
+[Authorize]
 public sealed class TransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;

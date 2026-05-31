@@ -1,0 +1,21 @@
+# Exclude build output — Docker must do a clean restore inside the container
+# so Windows-specific NuGet fallback paths (from local obj/ cache) don't bleed in
+**/bin/
+**/obj/
+
+# Exclude local dev files
+**/*.user
+**/*.suo
+.vs/
+
+# Exclude test projects — not needed for API runtime image
+tests/
+
+# Exclude frontend — built by its own Dockerfile
+src/WEX.UI/node_modules/
+src/WEX.UI/dist/
+
+# Exclude git and docs
+.git/
+docs/
+*.md
