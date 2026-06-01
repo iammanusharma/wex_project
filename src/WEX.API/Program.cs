@@ -1,14 +1,9 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Text;
 using WEX.API.Middleware;
 using WEX.Application;
 using WEX.Infrastructure;
-using WEX.Infrastructure.Auth;
 using WEX.Infrastructure.Persistence;
 
 // Bootstrap Serilog early to capture startup errors
@@ -45,62 +40,11 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-
-    // JWT Authentication
-    var jwtOptions = builder.Configuration
-        .GetSection(JwtOptions.SectionName)
-        .Get<JwtOptions>();
-
-    if (jwtOptions == null)
-    {
-        Log.Warning("Jwt configuration section is missing — authentication will not work correctly.");
-        jwtOptions = new JwtOptions();
-    }
-
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
-                ClockSkew = TimeSpan.FromMinutes(1)
-            };
-        });
-    builder.Services.AddAuthorization();
-
     builder.Services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new() { Title = "WEX Corporate Payments API", Version = "v1" });
         c.IncludeXmlComments(Path.Combine(
             AppContext.BaseDirectory, "WEX.API.xml"), includeControllerXmlComments: true);
-
-        // Enable Bearer token input in Swagger UI
-        var securityScheme = new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Enter your JWT token (without 'Bearer ' prefix)."
-        };
-        c.AddSecurityDefinition("Bearer", securityScheme);
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                },
-                Array.Empty<string>()
-            }
-        });
     });
 
     // Global exception handler (RFC 7807 Problem Details)

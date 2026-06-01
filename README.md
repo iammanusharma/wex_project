@@ -6,133 +6,19 @@ A technical assessment implementation for WEX — an enterprise-grade corporate 
 
 ## 📑 Table of Contents
 
-1. [🔐 Authentication](#-authentication)
-2. [📋 Requirements Implemented](#-requirements-implemented)
-3. [🖥️ UI Pages](#️-ui-pages)
-4. [🏗️ Architecture](#️-architecture)
-5. [🚀 Quick Start](#-quick-start)
-6. [💻 Local Development](#-local-development-without-docker)
-7. [🧪 Testing](#-testing)
-8. [📡 API Reference](#-api-reference)
+1. [🚀 Quick Start](#-quick-start)
+2. [💻 Local Development](#-local-development-without-docker)
+3. [🔐 Authentication](#-authentication)
+4. [📋 Requirements Implemented](#-requirements-implemented)
+5. [🏗️ Architecture](#️-architecture)
+6. [📡 API Reference](#-api-reference)
+7. [🖥️ UI Pages](#️-ui-pages)
+8. [🧪 Testing](#-testing)
 9. [🔧 Environment Configuration](#-environment-configuration)
 10. [🛡️ Quality Guardrails & Copilot Skills](#️-quality-guardrails--copilot-skills)
 11. [📦 Tech Stack](#-tech-stack)
 
 ---
-
-## 🔐 Authentication
-
-All API endpoints (except `/health`) are protected by **JWT Bearer authentication**.
-
-### Test Credentials
-
-Test credentials have been shared separately via email.
-Contact the author if you have not received them.
-
-### How to Authenticate
-
-**Option 1 — Angular UI (simplest)**
-1. Open `http://localhost:4200`
-2. You are redirected to the Login page automatically
-3. Enter the credentials above and click **Sign In**
-4. The UI handles all token management transparently
-
-**Option 2 — Swagger UI**
-1. Open `http://localhost:5000/swagger`
-2. Expand `POST /api/v1/auth/login` → click **Try it out**
-3. Enter the credentials and click **Execute**
-4. Copy the `accessToken` value from the response body
-5. Click the 🔒 **Authorize** button at the top of the page
-6. Paste the token and click **Authorize**
-7. All subsequent Swagger requests will include the Bearer token
-
-**Option 3 — cURL / Postman**
-```bash
-# Step 1 — obtain a token
-curl -X POST http://localhost:5000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"<email>","password":"<password>"}'
-
-# Response: { "accessToken": "eyJ...", "expiresIn": 3600 }
-
-# Step 2 — use the token
-curl -X GET "http://localhost:5000/api/v1/transactions/{id}?currency=EUR" \
-  -H "Authorization: Bearer eyJ..."
-```
-
-**Token details:** Tokens are valid for **60 minutes** (HS256 signed). The login endpoint returns the same `401` message for both wrong username and wrong password — this prevents user enumeration.
-
-> **Production note:** The `InMemoryUserStore` and plaintext config passwords are intentional simplifications for this assessment. Production would use ASP.NET Core Identity with bcrypt hashing and optionally an OAuth 2.0 provider (Azure AD, Keycloak, etc.). The interfaces (`ITokenService`, `IUserStore`) are already in place so the swap is an Infrastructure-only change.
-
----
-
-## 📋 Requirements Implemented
-
-### Requirement 1 — Store a Purchase Transaction
-`POST /api/v1/transactions` *(requires Bearer token)*
-
-Stores a purchase transaction with:
-- Description (max 50 characters)
-- Transaction date
-- Purchase amount in USD (positive, rounded to nearest cent)
-
-### Requirement 2 — Retrieve Transaction in Foreign Currency
-`GET /api/v1/transactions/{id}?currency={code}` *(requires Bearer token)*
-
-Retrieves a stored transaction and converts the USD amount to the target currency using the [US Treasury Reporting Rates of Exchange API](https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange). Returns the exchange rate active within 6 months of the purchase date, or `422 Unprocessable Entity` if no rate is available.
-
----
-
-## 🖥️ UI Pages
-
-| Page | Route | Description |
-|---|---|---|
-| Login | `/login` | Sign in — redirected here automatically when not authenticated |
-| New Transaction | `/transactions` | Create a new purchase transaction |
-| Transaction Detail (lookup) | `/transactions/lookup` | Enter any transaction UUID + currency to retrieve and convert |
-| Transaction Detail (linked) | `/transactions/:id` | Auto-navigated to after creating a transaction |
-
-The **Transaction Detail** page works in two modes:
-- **Linked mode** (from New Transaction) — ID pre-filled from the URL, only the currency field is editable
-- **Lookup mode** (from nav menu) — both Transaction ID and Target Currency are editable inputs
-
-A clear error message is shown when the ID does not exist.
-
----
-
-## 🏗️ Architecture
-
-```
-src/
-├── WEX.Domain/          # Entities, domain exceptions, repository interfaces
-├── WEX.Application/     # CQRS handlers (MediatR), validators (FluentValidation), service interfaces
-├── WEX.Infrastructure/  # EF Core + PostgreSQL, Treasury API client, JWT token service
-└── WEX.API/             # ASP.NET Core 8, Swagger, Serilog, global exception handler
-
-src/WEX.UI/              # Angular 19 standalone SPA (Angular Material)
-
-tests/
-├── WEX.Domain.Tests/           # Domain entity + value object unit tests
-├── WEX.Application.Tests/      # Command/query handler + validator unit tests
-├── WEX.Infrastructure.Tests/   # Repository + external service unit tests
-└── WEX.API.IntegrationTests/   # Full HTTP integration tests (in-memory DB)
-```
-
-**Key design decisions:**
-
-| Decision | Rationale |
-|---|---|
-| **Clean Architecture** | Strict dependency inversion: Domain ← Application ← Infrastructure → API. Each layer evolves independently; new developers know exactly where code belongs. |
-| **CQRS with MediatR** | Commands (writes) and Queries (reads) are fully separated. Teams can work on them in parallel without conflicts. |
-| **FluentValidation pipeline** | Validation runs as a MediatR behaviour before every handler — never forgotten, never duplicated. |
-| **JWT Bearer auth** | `ITokenService` + `IUserStore` interfaces live in Application; HS256 implementation is in Infrastructure. Swapping to OAuth2/OIDC is an Infrastructure-only change. |
-| **Options pattern** | All configuration is strongly-typed via `IOptions<T>`. No raw string lookups, environment differences are explicit. |
-| **IHttpClientFactory + Polly** | Manages HTTP connection pooling for Treasury API; exponential-backoff retry (3 attempts) on transient failures. |
-| **IMemoryCache** | 60-minute TTL per currency+date pair. Reduces external API dependency and latency. |
-| **EnsureCreated()** | Zero-friction local/Docker startup — schema auto-created, no migration step. Production would use `dotnet ef database update` for versioned, rollback-safe migrations. Conscious trade-off for reviewer experience. |
-
----
-
 ## 🚀 Quick Start
 
 ### Option A — One-command start (auto-detects Docker)
@@ -167,6 +53,8 @@ docker-compose up
 | PostgreSQL | localhost:5432 |
 
 > The API waits for PostgreSQL to become healthy, then auto-creates the schema on first boot. No manual DB setup required.
+
+---
 
 ---
 
@@ -219,23 +107,107 @@ npx ng serve --configuration local
 
 ---
 
-## 🧪 Testing
+---
 
-### Run all tests (recommended)
+## 🔐 Authentication
+
+All API endpoints (except `/health`) are protected by **JWT Bearer authentication**.
+
+### Test Credentials
+
+Test credentials have been shared separately via email.
+Contact the author if you have not received them.
+
+### How to Authenticate
+
+**Option 1 — Angular UI (simplest)**
+1. Open `http://localhost:4200`
+2. You are redirected to the Login page automatically
+3. Enter the credentials above and click **Sign In**
+4. The UI handles all token management transparently
+
+**Option 2 — Swagger UI**
+1. Open `http://localhost:5000/swagger`
+2. Expand `POST /api/v1/auth/login` → click **Try it out**
+3. Enter the credentials and click **Execute**
+4. Copy the `accessToken` value from the response body
+5. Click the 🔒 **Authorize** button at the top of the page
+6. Paste the token and click **Authorize**
+7. All subsequent Swagger requests will include the Bearer token
+
+**Option 3 — cURL / Postman**
 ```bash
-dotnet test WEX.CorporatePayments.slnx
+# Step 1 — obtain a token
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"<email>","password":"<password>"}'
+
+# Response: { "accessToken": "eyJ...", "expiresIn": 3600 }
+
+# Step 2 — use the token
+curl -X GET "http://localhost:5000/api/v1/transactions/{id}?currency=EUR" \
+  -H "Authorization: Bearer eyJ..."
 ```
 
-### Run individual test projects
-```bash
-dotnet test tests/WEX.Domain.Tests              # 12 tests  — domain entities & value objects
-dotnet test tests/WEX.Application.Tests         # 38 tests  — handlers, validators, incl. auth
-dotnet test tests/WEX.API.IntegrationTests      #  6 tests  — full HTTP: auth + protected endpoints
+**Token details:** Tokens are valid for **60 minutes** (HS256 signed). The login endpoint returns the same `401` message for both wrong username and wrong password — this prevents user enumeration.
+
+> **Production note:** The `InMemoryUserStore` and plaintext config passwords are intentional simplifications for this assessment. Production would use ASP.NET Core Identity with bcrypt hashing and optionally an OAuth 2.0 provider (Azure AD, Keycloak, etc.). The interfaces (`ITokenService`, `IUserStore`) are already in place so the swap is an Infrastructure-only change.
+
+---
+
+---
+
+## 📋 Requirements Implemented
+
+### Requirement 1 — Store a Purchase Transaction
+`POST /api/v1/transactions` *(requires Bearer token)*
+
+Stores a purchase transaction with:
+- Description (max 50 characters)
+- Transaction date
+- Purchase amount in USD (positive, rounded to nearest cent)
+
+### Requirement 2 — Retrieve Transaction in Foreign Currency
+`GET /api/v1/transactions/{id}?currency={code}` *(requires Bearer token)*
+
+Retrieves a stored transaction and converts the USD amount to the target currency using the [US Treasury Reporting Rates of Exchange API](https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange). Returns the exchange rate active within 6 months of the purchase date, or `422 Unprocessable Entity` if no rate is available.
+
+---
+
+---
+
+## 🏗️ Architecture
+
+```
+src/
+├── WEX.Domain/          # Entities, domain exceptions, repository interfaces
+├── WEX.Application/     # CQRS handlers (MediatR), validators (FluentValidation), service interfaces
+├── WEX.Infrastructure/  # EF Core + PostgreSQL, Treasury API client, JWT token service
+└── WEX.API/             # ASP.NET Core 8, Swagger, Serilog, global exception handler
+
+src/WEX.UI/              # Angular 19 standalone SPA (Angular Material)
+
+tests/
+├── WEX.Domain.Tests/           # Domain entity + value object unit tests
+├── WEX.Application.Tests/      # Command/query handler + validator unit tests
+├── WEX.Infrastructure.Tests/   # Repository + external service unit tests
+└── WEX.API.IntegrationTests/   # Full HTTP integration tests (in-memory DB)
 ```
 
-**Test summary: 56 tests, 0 failures**
+**Key design decisions:**
 
-Integration tests use an in-memory database and inject test JWT config via `appsettings.Testing.json` — no running database or external services required.
+| Decision | Rationale |
+|---|---|
+| **Clean Architecture** | Strict dependency inversion: Domain ← Application ← Infrastructure → API. Each layer evolves independently; new developers know exactly where code belongs. |
+| **CQRS with MediatR** | Commands (writes) and Queries (reads) are fully separated. Teams can work on them in parallel without conflicts. |
+| **FluentValidation pipeline** | Validation runs as a MediatR behaviour before every handler — never forgotten, never duplicated. |
+| **JWT Bearer auth** | `ITokenService` + `IUserStore` interfaces live in Application; HS256 implementation is in Infrastructure. Swapping to OAuth2/OIDC is an Infrastructure-only change. |
+| **Options pattern** | All configuration is strongly-typed via `IOptions<T>`. No raw string lookups, environment differences are explicit. |
+| **IHttpClientFactory + Polly** | Manages HTTP connection pooling for Treasury API; exponential-backoff retry (3 attempts) on transient failures. |
+| **IMemoryCache** | 60-minute TTL per currency+date pair. Reduces external API dependency and latency. |
+| **EnsureCreated()** | Zero-friction local/Docker startup — schema auto-created, no migration step. Production would use `dotnet ef database update` for versioned, rollback-safe migrations. Conscious trade-off for reviewer experience. |
+
+---
 
 ---
 
@@ -317,6 +289,49 @@ Retrieve a transaction with USD amount converted to the target currency.
 
 ---
 
+---
+
+## 🖥️ UI Pages
+
+| Page | Route | Description |
+|---|---|---|
+| Login | `/login` | Sign in — redirected here automatically when not authenticated |
+| New Transaction | `/transactions` | Create a new purchase transaction |
+| Transaction Detail (lookup) | `/transactions/lookup` | Enter any transaction UUID + currency to retrieve and convert |
+| Transaction Detail (linked) | `/transactions/:id` | Auto-navigated to after creating a transaction |
+
+The **Transaction Detail** page works in two modes:
+- **Linked mode** (from New Transaction) — ID pre-filled from the URL, only the currency field is editable
+- **Lookup mode** (from nav menu) — both Transaction ID and Target Currency are editable inputs
+
+A clear error message is shown when the ID does not exist.
+
+---
+
+---
+
+## 🧪 Testing
+
+### Run all tests (recommended)
+```bash
+dotnet test WEX.CorporatePayments.slnx
+```
+
+### Run individual test projects
+```bash
+dotnet test tests/WEX.Domain.Tests              # 12 tests  — domain entities & value objects
+dotnet test tests/WEX.Application.Tests         # 38 tests  — handlers, validators, incl. auth
+dotnet test tests/WEX.API.IntegrationTests      #  6 tests  — full HTTP: auth + protected endpoints
+```
+
+**Test summary: 56 tests, 0 failures**
+
+Integration tests use an in-memory database and inject test JWT config via `appsettings.Testing.json` — no running database or external services required.
+
+---
+
+---
+
 ## 🔧 Environment Configuration
 
 | File | Environment | Committed |
@@ -329,6 +344,8 @@ Retrieve a transaction with USD amount converted to the target currency.
 | `appsettings.Production.json` | Production secrets | ❌ git-ignored |
 
 JWT secrets and database passwords are **never committed**. They are injected via environment-specific files locally, and via CI/CD secrets in deployment pipelines.
+
+---
 
 ---
 
@@ -420,6 +437,8 @@ Scaffolds a lazy-loaded feature with component, service, typed API integration, 
 6. Adding a read operation?       → /add-query
 7. Before raising a PR?           → /code-quality-check
 ```
+
+---
 
 ---
 
