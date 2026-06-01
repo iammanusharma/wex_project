@@ -85,17 +85,20 @@ public class StorePurchaseTransactionCommandValidatorTests
         result.Errors.Should().Contain(e => e.PropertyName == "AmountUsd" && e.ErrorMessage.Contains("positive"));
     }
 
-    [Fact]
-    public void Validate_AmountWithMoreThan2DecimalPlaces_FailsWithRoundingMessage()
+    [Theory]
+    [InlineData(10.001)]
+    [InlineData(49.999)]
+    [InlineData(1.123456)]
+    public void Validate_AmountWithMoreThan2DecimalPlaces_PassesValidation(decimal amount)
     {
+        // Rounding is applied by the handler — the validator no longer rejects extra decimal places.
         // Arrange
-        var command = new StorePurchaseTransactionCommand("Test", new DateOnly(2024, 1, 1), 10.001m);
+        var command = new StorePurchaseTransactionCommand("Test", new DateOnly(2024, 1, 1), amount);
 
         // Act
         var result = _validator.Validate(command);
 
         // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.PropertyName == "AmountUsd" && e.ErrorMessage.Contains("cent"));
+        result.IsValid.Should().BeTrue();
     }
 }

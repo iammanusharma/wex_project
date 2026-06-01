@@ -16,6 +16,7 @@ import { AuthService } from './core/services/auth.service';
       <span class="spacer"></span>
       @if (auth.isAuthenticated()) {
         <button mat-button routerLink="/transactions">New Transaction</button>
+        <button mat-button routerLink="/transactions/lookup">Transaction Detail</button>
         <button mat-icon-button (click)="auth.logout()" title="Sign out">
           <mat-icon>logout</mat-icon>
         </button>

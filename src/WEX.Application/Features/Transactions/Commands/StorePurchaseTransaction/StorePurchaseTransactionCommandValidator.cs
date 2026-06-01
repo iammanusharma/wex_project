@@ -23,8 +23,6 @@ public sealed class StorePurchaseTransactionCommandValidator
 
         RuleFor(x => x.AmountUsd)
             .GreaterThan(0)
-                .WithMessage("Purchase amount must be a positive value.")
-            .Must(a => decimal.Round(a, 2) == a)
-                .WithMessage("Purchase amount must be rounded to the nearest cent.");
+                .WithMessage("Purchase amount must be a positive value.");
     }
 }

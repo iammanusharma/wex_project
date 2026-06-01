@@ -4,10 +4,72 @@ A technical assessment implementation for WEX — an enterprise-grade corporate 
 
 ---
 
+## 📑 Table of Contents
+
+1. [🔐 Authentication](#-authentication)
+2. [📋 Requirements Implemented](#-requirements-implemented)
+3. [🖥️ UI Pages](#️-ui-pages)
+4. [🏗️ Architecture](#️-architecture)
+5. [🚀 Quick Start](#-quick-start)
+6. [💻 Local Development](#-local-development-without-docker)
+7. [🧪 Testing](#-testing)
+8. [📡 API Reference](#-api-reference)
+9. [🔧 Environment Configuration](#-environment-configuration)
+10. [🛡️ Quality Guardrails & Copilot Skills](#️-quality-guardrails--copilot-skills)
+11. [📦 Tech Stack](#-tech-stack)
+
+---
+
+## 🔐 Authentication
+
+All API endpoints (except `/health`) are protected by **JWT Bearer authentication**.
+
+### Test Credentials
+
+Test credentials have been shared separately via email.
+Contact the author if you have not received them.
+
+### How to Authenticate
+
+**Option 1 — Angular UI (simplest)**
+1. Open `http://localhost:4200`
+2. You are redirected to the Login page automatically
+3. Enter the credentials above and click **Sign In**
+4. The UI handles all token management transparently
+
+**Option 2 — Swagger UI**
+1. Open `http://localhost:5000/swagger`
+2. Expand `POST /api/v1/auth/login` → click **Try it out**
+3. Enter the credentials and click **Execute**
+4. Copy the `accessToken` value from the response body
+5. Click the 🔒 **Authorize** button at the top of the page
+6. Paste the token and click **Authorize**
+7. All subsequent Swagger requests will include the Bearer token
+
+**Option 3 — cURL / Postman**
+```bash
+# Step 1 — obtain a token
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"<email>","password":"<password>"}'
+
+# Response: { "accessToken": "eyJ...", "expiresIn": 3600 }
+
+# Step 2 — use the token
+curl -X GET "http://localhost:5000/api/v1/transactions/{id}?currency=EUR" \
+  -H "Authorization: Bearer eyJ..."
+```
+
+**Token details:** Tokens are valid for **60 minutes** (HS256 signed). The login endpoint returns the same `401` message for both wrong username and wrong password — this prevents user enumeration.
+
+> **Production note:** The `InMemoryUserStore` and plaintext config passwords are intentional simplifications for this assessment. Production would use ASP.NET Core Identity with bcrypt hashing and optionally an OAuth 2.0 provider (Azure AD, Keycloak, etc.). The interfaces (`ITokenService`, `IUserStore`) are already in place so the swap is an Infrastructure-only change.
+
+---
+
 ## 📋 Requirements Implemented
 
 ### Requirement 1 — Store a Purchase Transaction
-`POST /api/v1/transactions`
+`POST /api/v1/transactions` *(requires Bearer token)*
 
 Stores a purchase transaction with:
 - Description (max 50 characters)
@@ -15,9 +77,26 @@ Stores a purchase transaction with:
 - Purchase amount in USD (positive, rounded to nearest cent)
 
 ### Requirement 2 — Retrieve Transaction in Foreign Currency
-`GET /api/v1/transactions/{id}?currency={code}`
+`GET /api/v1/transactions/{id}?currency={code}` *(requires Bearer token)*
 
-Retrieves a stored transaction and converts the USD amount to the target currency using the [US Treasury Reporting Rates of Exchange API](https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange). Returns the exchange rate active at the time of purchase (within 6 months), or `422 Unprocessable Entity` if no rate is available.
+Retrieves a stored transaction and converts the USD amount to the target currency using the [US Treasury Reporting Rates of Exchange API](https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange). Returns the exchange rate active within 6 months of the purchase date, or `422 Unprocessable Entity` if no rate is available.
+
+---
+
+## 🖥️ UI Pages
+
+| Page | Route | Description |
+|---|---|---|
+| Login | `/login` | Sign in — redirected here automatically when not authenticated |
+| New Transaction | `/transactions` | Create a new purchase transaction |
+| Transaction Detail (lookup) | `/transactions/lookup` | Enter any transaction UUID + currency to retrieve and convert |
+| Transaction Detail (linked) | `/transactions/:id` | Auto-navigated to after creating a transaction |
+
+The **Transaction Detail** page works in two modes:
+- **Linked mode** (from New Transaction) — ID pre-filled from the URL, only the currency field is editable
+- **Lookup mode** (from nav menu) — both Transaction ID and Target Currency are editable inputs
+
+A clear error message is shown when the ID does not exist.
 
 ---
 
@@ -25,48 +104,40 @@ Retrieves a stored transaction and converts the USD amount to the target currenc
 
 ```
 src/
-├── WEX.Domain/          # Entities, Value Objects, Domain Exceptions, Interfaces
-├── WEX.Application/     # CQRS Commands/Queries (MediatR), Validators (FluentValidation)
-├── WEX.Infrastructure/  # EF Core (PostgreSQL), Treasury API client (Polly + IMemoryCache)
-└── WEX.API/             # ASP.NET Core 8 REST API, Serilog, Swagger
+├── WEX.Domain/          # Entities, domain exceptions, repository interfaces
+├── WEX.Application/     # CQRS handlers (MediatR), validators (FluentValidation), service interfaces
+├── WEX.Infrastructure/  # EF Core + PostgreSQL, Treasury API client, JWT token service
+└── WEX.API/             # ASP.NET Core 8, Swagger, Serilog, global exception handler
 
-src/WEX.UI/              # Angular 19 standalone app with Angular Material
-```
+src/WEX.UI/              # Angular 19 standalone SPA (Angular Material)
 
-## 🏗️ Architecture
-
-```
-src/
-├── WEX.Domain/          # Entities, Value Objects, Domain Exceptions, Interfaces
-├── WEX.Application/     # CQRS Commands/Queries (MediatR), Validators (FluentValidation)
-├── WEX.Infrastructure/  # EF Core (PostgreSQL), Treasury API client (Polly + IMemoryCache)
-└── WEX.API/             # ASP.NET Core 8 REST API, Serilog, Swagger
-
-src/WEX.UI/              # Angular 19 standalone app with Angular Material
+tests/
+├── WEX.Domain.Tests/           # Domain entity + value object unit tests
+├── WEX.Application.Tests/      # Command/query handler + validator unit tests
+├── WEX.Infrastructure.Tests/   # Repository + external service unit tests
+└── WEX.API.IntegrationTests/   # Full HTTP integration tests (in-memory DB)
 ```
 
 **Key design decisions:**
-- **Clean Architecture** — strict dependency flow: Domain ← Application ← Infrastructure → API. Each layer has a single responsibility and can evolve independently. New developers onboard quickly because the structure is predictable.
-- **CQRS with MediatR** — Commands (writes) and Queries (reads) are fully separated. This scales well as the team grows — developers work on features in parallel without stepping on each other.
-- **FluentValidation pipeline** — validation runs as a MediatR behaviour before every handler. Validation is never forgotten and never duplicated.
-- **Options pattern** — all config is strongly-typed via `IOptions<T>`, never raw strings. Eliminates runtime config errors and makes environment differences explicit.
-- **IHttpClientFactory** — manages HTTP connection pooling for Treasury API calls (avoids socket exhaustion at scale).
-- **Polly retry** — exponential backoff (3 retries) on transient Treasury API failures. Resilience is built in, not bolted on.
-- **IMemoryCache** — 60-minute TTL caches exchange rates per currency+date pair. Reduces external API dependency and latency.
-- **Quality guardrail skills** — VS Code Copilot skills enforce architecture patterns so the codebase stays consistent as the team scales. New developers follow the same patterns from day one without needing a lengthy onboarding session.
-- `EnsureCreated()` is used for local/dev schema creation — no migration files required, so the interviewer can run `docker-compose up` and it just works. In production this would be replaced with EF Core migrations (`dotnet ef migrations add` / `dotnet ef database update`) for proper schema versioning, incremental changes, and rollback support. This was a conscious trade-off: optimise for reviewer simplicity while keeping the production path clear.
+
+| Decision | Rationale |
+|---|---|
+| **Clean Architecture** | Strict dependency inversion: Domain ← Application ← Infrastructure → API. Each layer evolves independently; new developers know exactly where code belongs. |
+| **CQRS with MediatR** | Commands (writes) and Queries (reads) are fully separated. Teams can work on them in parallel without conflicts. |
+| **FluentValidation pipeline** | Validation runs as a MediatR behaviour before every handler — never forgotten, never duplicated. |
+| **JWT Bearer auth** | `ITokenService` + `IUserStore` interfaces live in Application; HS256 implementation is in Infrastructure. Swapping to OAuth2/OIDC is an Infrastructure-only change. |
+| **Options pattern** | All configuration is strongly-typed via `IOptions<T>`. No raw string lookups, environment differences are explicit. |
+| **IHttpClientFactory + Polly** | Manages HTTP connection pooling for Treasury API; exponential-backoff retry (3 attempts) on transient failures. |
+| **IMemoryCache** | 60-minute TTL per currency+date pair. Reduces external API dependency and latency. |
+| **EnsureCreated()** | Zero-friction local/Docker startup — schema auto-created, no migration step. Production would use `dotnet ef database update` for versioned, rollback-safe migrations. Conscious trade-off for reviewer experience. |
 
 ---
 
 ## 🚀 Quick Start
 
-### One-command start (auto-detects Docker)
+### Option A — One-command start (auto-detects Docker)
 
-```bash
-# Clone the repo first
-git clone <repository-url>
-cd wex_project
-
+```powershell
 # Windows
 .\start.ps1
 
@@ -74,18 +145,14 @@ cd wex_project
 chmod +x start.sh && ./start.sh
 ```
 
-The script detects whether Docker is available:
-- **Docker found** → runs `docker-compose up --build` (zero config needed)
-- **No Docker** → prints step-by-step local setup instructions
+The script checks whether Docker is available:
+- **Docker found** → runs `docker-compose up --build` (zero additional config)
+- **No Docker** → prints manual setup instructions
 
----
+### Option B — Docker Compose (recommended)
 
-### Docker (recommended)
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) running
 
-### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) running
-
-### Run everything
 ```bash
 cd wex_project
 docker-compose up
@@ -99,7 +166,7 @@ docker-compose up
 | Health check | http://localhost:5000/health |
 | PostgreSQL | localhost:5432 |
 
-> The API waits for PostgreSQL to be healthy before starting, then auto-creates the schema on first boot.
+> The API waits for PostgreSQL to become healthy, then auto-creates the schema on first boot. No manual DB setup required.
 
 ---
 
@@ -110,71 +177,96 @@ docker-compose up
 - [Node.js 20+](https://nodejs.org/)
 - [PostgreSQL 16](https://www.postgresql.org/) running locally
 
-### 1. Configure local database
+### 1. Create local config file
 Create `src/WEX.API/appsettings.Local.json` (git-ignored — never committed):
+
 ```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=wex_corporate_local;Username=<your_user>;Password=<your_password>"
+  },
+  "Cors": {
+    "AllowedOrigins": [ "http://localhost:4200" ]
+  },
+  "Jwt": {
+    "Secret": "WexLocal-SuperSecret-Key-32chars!!",
+    "Issuer": "wex-api",
+    "Audience": "wex-client",
+    "ExpiryMinutes": 60
+  },
+  "Auth": {
+    "Users": {
+      "<email-from-email>": "<password-from-email>"
+    }
   }
 }
 ```
 
-### 2. Run the API
-```bash
-cd src/WEX.API
-ASPNETCORE_ENVIRONMENT=Local dotnet run
-# Windows:
-$env:ASPNETCORE_ENVIRONMENT="Local"; dotnet run
+### 2. Start the API
+```powershell
+# From wex_project root
+dotnet run --project src/WEX.API --launch-profile Local
+# Listening on http://localhost:5000
 ```
 
-### 3. Run the Angular UI
+### 3. Start the Angular UI
 ```bash
 cd src/WEX.UI
 npm install
-npm run start:local      # http://localhost:4200
+npx ng serve --configuration local
+# Listening on http://localhost:4200
 ```
 
 ---
 
 ## 🧪 Testing
 
-### Unit Tests (no dependencies required)
-```bash
-dotnet test tests/WEX.Domain.Tests
-dotnet test tests/WEX.Application.Tests
-```
-
-### Functional API Tests (requires running API + database)
-```bash
-# Start the API first, then:
-dotnet test tests/WEX.API.FunctionalTests
-```
-
-### E2E Browser Tests — Playwright (requires running API + UI)
-```bash
-# Start both API and UI first, then:
-cd tests/e2e
-npm install
-npx playwright install chromium
-npm test                  # headless
-npm run test:headed       # with visible browser
-npm run test:ui           # interactive Playwright UI
-```
-
-### Run all unit tests at once
+### Run all tests (recommended)
 ```bash
 dotnet test WEX.CorporatePayments.slnx
 ```
 
+### Run individual test projects
+```bash
+dotnet test tests/WEX.Domain.Tests              # 12 tests  — domain entities & value objects
+dotnet test tests/WEX.Application.Tests         # 38 tests  — handlers, validators, incl. auth
+dotnet test tests/WEX.API.IntegrationTests      #  6 tests  — full HTTP: auth + protected endpoints
+```
+
+**Test summary: 56 tests, 0 failures**
+
+Integration tests use an in-memory database and inject test JWT config via `appsettings.Testing.json` — no running database or external services required.
+
 ---
 
-## 📡 API Reference
+## �� API Reference
+
+> ⚠️ All endpoints except `POST /api/v1/auth/login` require `Authorization: Bearer <token>`.
+
+### POST /api/v1/auth/login
+Authenticate and receive a JWT access token.
+
+**Request body:**
+```json
+{ "username": "<email>", "password": "<password>" }
+```
+
+**Response `200 OK`:**
+```json
+{ "accessToken": "eyJhbGci...", "expiresIn": 3600 }
+```
+
+| Code | Reason |
+|---|---|
+| `400` | Missing username or password |
+| `401` | Invalid credentials |
+
+---
 
 ### POST /api/v1/transactions
 Store a new purchase transaction.
 
-**Request:**
+**Request body:**
 ```json
 {
   "description": "Office supplies",
@@ -188,16 +280,19 @@ Store a new purchase transaction.
 { "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6" }
 ```
 
-**Validation errors `400 Bad Request`:**
-- Description: required, max 50 characters
-- Amount: must be positive, max 2 decimal places
+| Code | Reason |
+|---|---|
+| `400` | Validation failed — description > 50 chars, amount ≤ 0, or > 2 decimal places |
+| `401` | Missing or expired Bearer token |
 
 ---
 
 ### GET /api/v1/transactions/{id}?currency={code}
-Retrieve a transaction converted to a foreign currency.
+Retrieve a transaction with USD amount converted to the target currency.
 
-**Example:** `GET /api/v1/transactions/3fa85f64...?currency=EUR`
+**Example:** `GET /api/v1/transactions/3fa85f64-5717-4562-b3fc-2c963f66afa6?currency=EUR`
+
+**Supported currencies (sample):** `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `CNY`, `INR`, `MXN`, `NZD` — any country/currency supported by the US Treasury Rates of Exchange dataset.
 
 **Response `200 OK`:**
 ```json
@@ -207,155 +302,123 @@ Retrieve a transaction converted to a foreign currency.
   "transactionDate": "2024-06-15",
   "originalAmountUsd": 49.99,
   "targetCurrency": "EUR",
-  "exchangeRate": 1.08,
-  "convertedAmount": 53.99
+  "exchangeRate": 0.93,
+  "convertedAmount": 46.49
 }
 ```
 
-**Error responses:**
 | Code | Reason |
 |---|---|
-| `400` | Invalid transaction ID or currency code |
-| `404` | Transaction not found |
-| `422` | No exchange rate available within 6 months of purchase date |
+| `400` | Invalid UUID or currency code format |
+| `401` | Missing or expired Bearer token |
+| `404` | Transaction ID not found |
+| `422` | No Treasury exchange rate available within 6 months of the purchase date |
+| `503` | US Treasury API temporarily unavailable (retried 3× before failing) |
 
 ---
 
 ## 🔧 Environment Configuration
 
-| File | Purpose | Committed |
+| File | Environment | Committed |
 |---|---|---|
-| `appsettings.json` | Shared defaults | ✅ |
-| `appsettings.Development.json` | Docker / CI | ✅ |
-| `appsettings.UAT.json` | UAT environment | ✅ |
-| `appsettings.Local.json` | Developer local overrides | ❌ (git-ignored) |
-| `appsettings.Production.json` | Production secrets | ❌ (git-ignored) |
+| `appsettings.json` | Shared base defaults | ✅ |
+| `appsettings.Development.json` | Docker Compose / CI | ✅ |
+| `appsettings.UAT.json` | UAT — uses `#{token}#` placeholders for secrets | ✅ |
+| `appsettings.Testing.json` | Integration test in-memory config | ✅ |
+| `appsettings.Local.json` | Developer machine overrides | ❌ git-ignored |
+| `appsettings.Production.json` | Production secrets | ❌ git-ignored |
+
+JWT secrets and database passwords are **never committed**. They are injected via environment-specific files locally, and via CI/CD secrets in deployment pipelines.
 
 ---
 
 ## 🛡️ Quality Guardrails & Copilot Skills
 
-This project ships with a set of **GitHub Copilot Skills** — reusable AI prompt templates that guide every developer to follow the same architecture, naming, and quality rules automatically. They remove the need to memorise conventions and make it safe to onboard new developers quickly.
-
----
+This project ships with **GitHub Copilot Skills** — reusable AI prompt templates that encode architecture rules, naming conventions, and quality gates so every developer follows the same patterns automatically.
 
 ### How Skills Work
 
-Skills live in `.github/skills/` and are companion prompt files in `.github/prompts/`. When you open GitHub Copilot Chat in VS Code and type a skill command (e.g. `@workspace /implement-requirement`), Copilot loads the skill's instructions and guides you through the task step-by-step — always enforcing the project's quality rules.
+Skills live in `.github/skills/` with companion prompt files in `.github/prompts/`. In VS Code Copilot Chat, type the skill command (e.g. `/implement-requirement`) and Copilot guides you step-by-step, enforcing all project standards.
 
 **Prerequisites:**
-- VS Code with GitHub Copilot extension installed
-- `.vscode/settings.json` is committed (wires skills automatically for the whole team)
-- Open the `wex_project/` folder as your workspace root
+- VS Code + GitHub Copilot extension
+- Open `wex_project/` as your workspace root (`.vscode/settings.json` wires skills automatically)
 
 ---
 
 ### Available Skills
 
 #### `/implement-requirement`
-**When to use:** Starting a new feature from a business requirement or user story.
+**Use when:** Starting a feature from a business requirement or user story.
 
-**What it does:**
-1. Asks you to paste the requirement text
-2. Analyses it — identifies inputs, outputs, validation rules, edge cases
-3. Produces a full implementation plan across all Clean Architecture layers
-4. Asks for your approval before writing any code
-5. Implements layer-by-layer (Domain → Application → Infrastructure → API → Tests)
-6. Produces a compliance report confirming every quality gate is met
-
-**Benefits:** Ensures no layer is skipped, all error scenarios are considered, and tests are written alongside the feature — not as an afterthought.
+Guides you through: requirement analysis → implementation plan (with approval gate) → layer-by-layer implementation (Domain → Application → Infrastructure → API → Tests) → compliance report.
 
 ---
 
 #### `/add-feature`
-**When to use:** Scaffolding a brand new feature module (new entity, new domain concept).
+**Use when:** Adding a brand new domain concept (new entity, new bounded context).
 
-**What it does:** Creates the full vertical slice — entity, repository interface, domain exceptions, command/query, validator, handler, infrastructure implementation, controller action, and unit tests — all in one guided flow.
-
-**Benefits:** Eliminates the "where do I put this?" question for new developers. Every scaffold follows the same structure.
+Creates the full vertical slice: entity, repository interface, domain exceptions, command/query/handler/validator, infrastructure, controller action, and tests.
 
 ---
 
 #### `/add-command`
-**When to use:** Adding a write operation (create, update, delete) to an existing feature.
+**Use when:** Adding a write operation (create, update, delete) to an existing feature.
 
-**What it does:** Scaffolds:
-- `{Name}Command.cs` — MediatR `IRequest<T>` record
-- `{Name}CommandValidator.cs` — FluentValidation with `.WithMessage()` on every rule
-- `{Name}CommandHandler.cs` — handler with structured logging, `CancellationToken`, typed exceptions
-- Unit tests — happy path + all failure paths, NSubstitute + FluentAssertions
-
-**Benefits:** Consistent CQRS structure across every command. No forgotten validators, no missing tests.
+Scaffolds: `Command`, `CommandValidator`, `CommandHandler`, and matching unit tests (happy path + all failure paths).
 
 ---
 
 #### `/add-query`
-**When to use:** Adding a read operation (get by ID, search, list) to an existing feature.
+**Use when:** Adding a read operation (get, search, list) to an existing feature.
 
-**What it does:** Scaffolds:
-- `{Name}Query.cs` + `{Name}Response.cs` — query record and immutable DTO
-- `{Name}QueryValidator.cs` — input validation
-- `{Name}QueryHandler.cs` — handler mapping domain entity → response DTO, never exposing internals
-- Unit tests — found/not-found/business-rule scenarios
-
-**Benefits:** Enforces the rule that domain entities are never leaked to API callers — always mapped to a response DTO.
+Scaffolds: `Query`, `Response` DTO, `QueryValidator`, `QueryHandler` (with entity→DTO mapping), and unit tests.
 
 ---
 
 #### `/code-quality-check`
-**When to use:** Before every pull request, or after adding/changing any feature.
+**Use when:** Before raising a pull request.
 
-**What it does:** Reviews changed files against 8 quality gates:
-| Gate | Checks |
+Reviews changed files against 8 quality gates:
+
+| Gate | What it checks |
 |---|---|
 | Architecture | Dependency direction, no DbContext outside Infrastructure |
 | SOLID | Single responsibility, open/closed, dependency inversion |
-| Null safety | Nullable types enabled, no `!` operators without comment |
-| Async | CancellationToken everywhere, no `.Result`/`.Wait()` |
-| Logging | Structured logs, no sensitive data, correct log levels |
-| Security | No raw SQL, no secrets in code, FluentValidation on all inputs |
+| Null safety | Nullable enabled, no unexplained `!` operators |
+| Async | CancellationToken everywhere, no `.Result` / `.Wait()` |
+| Logging | Structured logs, no PII, correct severity levels |
+| Security | No raw SQL, no secrets in code, all inputs validated |
 | Error handling | Typed exceptions, RFC 7807 Problem Details, no silent catches |
-| Test coverage | Every handler tested, naming convention, no logic in tests |
+| Test coverage | Every handler tested, AAA naming, no logic in test assertions |
 
-Produces: **PASS / FAIL** verdict with file:line violations and suggested fixes.
-
-**Benefits:** Acts as a senior code reviewer available to every developer at any time. Catches issues before they reach human review.
+Outputs a **PASS / FAIL** verdict with file:line citations and suggested fixes.
 
 ---
 
 #### `/add-angular-feature`
-**When to use:** Adding a new page or component to the Angular UI.
+**Use when:** Adding a new page or component to the Angular UI.
 
-**What it does:** Scaffolds a lazy-loaded Angular feature module with component, service, routing, and typed API integration — following the project's Angular structure.
-
-**Benefits:** Consistent Angular patterns across the UI codebase.
+Scaffolds a lazy-loaded feature with component, service, typed API integration, route, and guard — following the project's existing Angular structure.
 
 ---
 
-### Project Spec (Auto-loaded)
+### Auto-loaded Project Spec
 
-`.github/copilot-instructions.md` is automatically loaded by GitHub Copilot for every conversation in this repository. It enforces:
-- Clean Architecture dependency rules
-- C# 12 / .NET 8 coding standards
-- Naming conventions (Commands, Queries, Handlers, Validators)
-- Logging standards (structured, no PII, correct levels)
-- Testing standards (xUnit + NSubstitute + FluentAssertions)
-- Security rules (no raw SQL, secrets via env vars only)
-- Environment configuration table
+`.github/copilot-instructions.md` is loaded automatically by Copilot for every conversation in this repo. It encodes all architecture, naming, logging, testing, and security rules — so Copilot never suggests patterns that violate project standards.
 
-> **For Engineering Managers:** These skills are the primary mechanism for maintaining consistent quality as the team scales. New developers are productive from day one because the skills encode the architecture decisions. The spec file ensures Copilot never suggests patterns that violate your standards.
+> **For Engineering Managers:** Skills are the primary mechanism for maintaining quality at scale. New developers are productive from day one without lengthy onboarding. The spec file ensures AI suggestions stay consistent with the team's agreed patterns.
 
----
-
-### Recommended Workflow for New Developers
+### Recommended Developer Workflow
 
 ```
 1. Clone repo → open wex_project/ in VS Code
 2. Install GitHub Copilot extension
-3. Start a new feature? → use /implement-requirement or /add-feature
-4. Adding a command? → /add-command
-5. Adding a query?   → /add-query
-6. Before raising PR → /code-quality-check
+3. New feature from a story?      → /implement-requirement
+4. New domain concept (entity)?   → /add-feature
+5. Adding a write operation?      → /add-command
+6. Adding a read operation?       → /add-query
+7. Before raising a PR?           → /code-quality-check
 ```
 
 ---
@@ -364,10 +427,11 @@ Produces: **PASS / FAIL** verdict with file:line violations and suggested fixes.
 
 | Layer | Technology |
 |---|---|
-| API | ASP.NET Core 8, MediatR 12, FluentValidation, Serilog |
+| API | ASP.NET Core 8, MediatR 12, FluentValidation 11, Serilog |
+| Authentication | JWT Bearer (HS256), `Microsoft.AspNetCore.Authentication.JwtBearer` |
 | Data | Entity Framework Core 8, PostgreSQL 16 (Npgsql) |
-| Resilience | Polly (retry + circuit breaker), IMemoryCache |
-| Observability | Serilog structured logging, OpenTelemetry, Health Checks |
-| UI | Angular 19, Angular Material, TypeScript |
-| Testing | xUnit, NSubstitute, FluentAssertions, Playwright |
-| Infrastructure | Docker, GitHub Actions CI |
+| Resilience | Polly 8 (exponential-backoff retry), `IMemoryCache` |
+| Observability | Serilog structured logging, Correlation ID middleware, Health Checks |
+| UI | Angular 19 (standalone), Angular Material, TypeScript |
+| Testing | xUnit, NSubstitute, FluentAssertions, `Microsoft.AspNetCore.Mvc.Testing` |
+| Containerisation | Docker, Docker Compose |
