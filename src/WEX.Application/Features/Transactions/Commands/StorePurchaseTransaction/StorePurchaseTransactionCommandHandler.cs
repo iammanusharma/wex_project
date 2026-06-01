@@ -27,16 +27,19 @@ public sealed class StorePurchaseTransactionCommandHandler
         StorePurchaseTransactionCommand request,
         CancellationToken cancellationToken)
     {
+        var roundedAmount = decimal.Round(request.AmountUsd, 2, MidpointRounding.AwayFromZero);
+
         _logger.LogInformation(
-            "Storing purchase transaction. Description: {Description}, Date: {TransactionDate}, Amount: {AmountUsd} USD",
+            "Storing purchase transaction. Description: {Description}, Date: {TransactionDate}, Amount: {AmountUsd} USD (rounded from {OriginalAmount})",
             request.Description,
             request.TransactionDate,
+            roundedAmount,
             request.AmountUsd);
 
         var transaction = PurchaseTransaction.Create(
             request.Description,
             request.TransactionDate,
-            request.AmountUsd);
+            roundedAmount);
 
         await _repository.AddAsync(transaction, cancellationToken);
 

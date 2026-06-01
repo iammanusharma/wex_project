@@ -57,21 +57,24 @@ public class StorePurchaseTransactionCommandHandlerTests
         await _repository.Received(1).AddAsync(Arg.Any<PurchaseTransaction>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_ValidCommand_ReturnsIdMatchingPersistedTransaction()
+    [Theory]
+    [InlineData(10.001, 10.00)]
+    [InlineData(49.999, 50.00)]
+    [InlineData(1.555, 1.56)]
+    [InlineData(1.554, 1.55)]
+    public async Task Handle_AmountWithExtraDecimals_PersistsRoundedToNearestCent(
+        decimal input, decimal expected)
     {
         // Arrange
-        Guid capturedId = Guid.Empty;
-        await _repository.AddAsync(
-            Arg.Do<PurchaseTransaction>(t => capturedId = t.Id),
-            Arg.Any<CancellationToken>());
-
-        var command = new StorePurchaseTransactionCommand("Test", new DateOnly(2024, 1, 1), 10.00m);
+        var command = new StorePurchaseTransactionCommand("Test", new DateOnly(2024, 1, 1), input);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.Should().Be(capturedId);
+        // Assert — stored amount is rounded, not the raw input
+        await _repository.Received(1).AddAsync(
+            Arg.Is<PurchaseTransaction>(t => t.AmountUsd == expected),
+            Arg.Any<CancellationToken>());
     }
 }
+

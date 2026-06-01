@@ -17,6 +17,13 @@ export const routes: Routes = [
         .then(m => m.CreateTransactionComponent),
   },
   {
+    path: 'transactions/lookup',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/transactions/components/transaction-detail/transaction-detail.component')
+        .then(m => m.TransactionDetailComponent),
+  },
+  {
     path: 'transactions/:id',
     canActivate: [authGuard],
     loadComponent: () =>
