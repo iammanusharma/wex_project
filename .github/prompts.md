@@ -1,1 +1,932 @@
-# AI-Assisted Project Playbook ## Step-by-Step Prompts from Ideation to Production > Use this as your personal playbook every time you start a new project. > Copy-paste each prompt, fill in the [brackets], and follow the steps in order. > Never skip a phase — each one builds context for the next. --- ## PHASE 0 — BEFORE YOU OPEN AN IDE > Do this on paper or in a notes file. No AI yet. This is your thinking. ### Questions to answer yourself first <span data-diff-end="15"></span> <span data-diff-start="16"></span>1. What problem am I solving? (One sentence — not a feature list) <span data-diff-end="16"></span> <span data-diff-start="17"></span>2. Who uses this system? <span data-diff-end="17"></span> <span data-diff-start="18"></span>3. What are the 3 most likely failure modes? <span data-diff-end="18"></span> <span data-diff-start="19"></span>4. What external systems does this depend on? <span data-diff-end="19"></span> <span data-diff-start="20"></span>5. Who will maintain this after I build it? <span data-diff-end="20"></span> <span data-diff-start="21"></span>6. What is the team size and skill distribution? <span data-diff-end="21"></span> <span data-diff-start="22"></span>7. What does "done" look like — what metrics prove it works? <span data-diff-end="22"></span> <span data-diff-start="23"></span> > Why before AI? If you ask AI to define your problem, it will define a generic version of it. You need to own the problem statement before you ask for help building the solution. --- ## PHASE 1 — ESTABLISH THE CONTEXT FILE ### (Do this before writing a single line of application code) This is the most important step. Everything after this is filtered through this file. --- ### Prompt 1.1 — Generate the architecture constitution <span data-diff-end="38"></span> <span data-diff-start="39"></span>I am starting a new [web API / full-stack app / microservice] project. <span data-diff-end="39"></span> <span data-diff-start="40"></span> <span data-diff-end="40"></span> <span data-diff-start="41"></span>The system is: [describe what it does in 2-3 sentences] <span data-diff-end="41"></span> <span data-diff-start="42"></span> <span data-diff-end="42"></span> <span data-diff-start="43"></span>Tech stack: <span data-diff-end="43"></span> <span data-diff-start="44"></span>- Backend: [e.g. .NET 8 / Node.js / Python FastAPI] <span data-diff-end="44"></span> <span data-diff-start="45"></span>- Frontend: [e.g. Angular 19 / React / None] <span data-diff-end="45"></span> <span data-diff-start="46"></span>- Database: [e.g. PostgreSQL / SQL Server / MongoDB] <span data-diff-end="46"></span> <span data-diff-start="47"></span>- Auth: [e.g. JWT / OAuth2 / API Key] <span data-diff-end="47"></span> <span data-diff-start="48"></span> <span data-diff-end="48"></span> <span data-diff-start="49"></span>The team is: [e.g. 6 engineers, mix of mid and senior, full-stack] <span data-diff-end="49"></span> <span data-diff-start="50"></span> <span data-diff-end="50"></span> <span data-diff-start="51"></span>Generate a copilot-instructions.md file for this project that encodes: <span data-diff-end="51"></span> <span data-diff-start="52"></span>1. Architecture pattern and strict dependency rules (e.g. Clean Architecture layers) <span data-diff-end="52"></span> <span data-diff-start="53"></span>2. Naming conventions for every artifact type (commands, queries, services, repos, tests) <span data-diff-end="53"></span> <span data-diff-start="54"></span>3. Error handling standards (exception types, HTTP status mapping, response format) <span data-diff-end="54"></span> <span data-diff-start="55"></span>4. Logging standards (structured logging rules, what to log, what NOT to log) <span data-diff-end="55"></span> <span data-diff-start="56"></span>5. Security rules (input validation, secrets, SQL injection, PII) <span data-diff-end="56"></span> <span data-diff-start="57"></span>6. Testing standards (tools, naming convention, structure, what must be tested) <span data-diff-end="57"></span> <span data-diff-start="58"></span>7. Async/await rules <span data-diff-end="58"></span> <span data-diff-start="59"></span>8. Configuration management rules <span data-diff-end="59"></span> <span data-diff-start="60"></span> <span data-diff-end="60"></span> <span data-diff-start="61"></span>For each rule, include: <span data-diff-end="61"></span> <span data-diff-start="62"></span>- The rule itself <span data-diff-end="62"></span> <span data-diff-start="63"></span>- WHY the rule exists (for a developer reading it) <span data-diff-end="63"></span> <span data-diff-start="64"></span>- An example of the WRONG pattern <span data-diff-end="64"></span> <span data-diff-start="65"></span>- An example of the CORRECT pattern <span data-diff-end="65"></span> <span data-diff-start="66"></span> <span data-diff-end="66"></span> <span data-diff-start="67"></span>This file will be loaded by GitHub Copilot automatically for every conversation. <span data-diff-end="67"></span> <span data-diff-start="68"></span> --- ### Prompt 1.2 — Review and harden the context file <span data-diff-end="74"></span> <span data-diff-start="75"></span>Review the copilot-instructions.md you just generated. <span data-diff-end="75"></span> <span data-diff-start="76"></span> <span data-diff-end="76"></span> <span data-diff-start="77"></span>For each section, ask: <span data-diff-end="77"></span> <span data-diff-start="78"></span>1. Is this rule specific enough that a developer cannot misinterpret it? <span data-diff-end="78"></span> <span data-diff-start="79"></span>2. Does it include a concrete wrong/right example? <span data-diff-end="79"></span> <span data-diff-start="80"></span>3. Are there any common AI-generated anti-patterns this section doesn't protect against? <span data-diff-end="80"></span> <span data-diff-start="81"></span> <span data-diff-end="81"></span> <span data-diff-start="82"></span>Specifically check: <span data-diff-end="82"></span> <span data-diff-start="83"></span>- Does the logging section explicitly prohibit string interpolation in log calls? <span data-diff-end="83"></span> <span data-diff-start="84"></span>- Does the security section cover auth responses that could enable user enumeration? <span data-diff-end="84"></span> <span data-diff-start="85"></span>- Does the error handling section specify the exact HTTP status for each error type? <span data-diff-end="85"></span> <span data-diff-start="86"></span>- Does the test section require tests for ALL failure paths, not just happy path? <span data-diff-end="86"></span> <span data-diff-start="87"></span> <span data-diff-end="87"></span> <span data-diff-start="88"></span>Improve any sections that are too vague. <span data-diff-end="88"></span> <span data-diff-start="89"></span> --- ### Prompt 1.3 — Generate the quality gate skill <span data-diff-end="95"></span> <span data-diff-start="96"></span>Based on the copilot-instructions.md above, generate a pre-PR code quality check skill. <span data-diff-end="96"></span> <span data-diff-start="97"></span> <span data-diff-end="97"></span> <span data-diff-start="98"></span>The skill should: <span data-diff-end="98"></span> <span data-diff-start="99"></span>1. Review all changed files against every rule in the instructions file <span data-diff-end="99"></span> <span data-diff-start="100"></span>2. Be structured as numbered gates (Architecture, SOLID, Null Safety, Async, Logging, Security, Error Handling, Tests) <span data-diff-end="100"></span> <span data-diff-start="101"></span>3. For each gate: list specific checks as checkboxes <span data-diff-end="101"></span> <span data-diff-start="102"></span>4. Output format: PASS gates listed, then VIOLATIONS with file:line:suggestion, then final PASS/FAIL verdict <span data-diff-end="102"></span> <span data-diff-start="103"></span>5. Never pass a file with a security violation regardless of other gate results <span data-diff-end="103"></span> <span data-diff-start="104"></span> <span data-diff-end="104"></span> <span data-diff-start="105"></span>Save this as .github/skills/code-quality-check.md <span data-diff-end="105"></span> <span data-diff-start="106"></span> --- ## PHASE 2 — SYSTEM DESIGN ### Prompt 2.1 — Architecture decision record <span data-diff-end="114"></span> <span data-diff-start="115"></span>I am designing [system name]. Here is what it needs to do: <span data-diff-end="115"></span> <span data-diff-start="116"></span>[paste your problem statement and requirements] <span data-diff-end="116"></span> <span data-diff-start="117"></span> <span data-diff-end="117"></span> <span data-diff-start="118"></span>Generate an Architecture Decision Record (ADR) covering: <span data-diff-end="118"></span> <span data-diff-start="119"></span> <span data-diff-end="119"></span> <span data-diff-start="120"></span>1. CONTEXT: What problem are we solving and what constraints exist? <span data-diff-end="120"></span> <span data-diff-start="121"></span> <span data-diff-end="121"></span> <span data-diff-start="122"></span>2. DECISION: What architectural pattern do we use and why? <span data-diff-end="122"></span> <span data-diff-start="123"></span> - Justify the choice over 2 alternatives you considered <span data-diff-end="123"></span> <span data-diff-start="124"></span> - What does this pattern cost the team (learning curve, complexity)? <span data-diff-end="124"></span> <span data-diff-start="125"></span> - What does it give the team (parallelism, testability, maintainability)? <span data-diff-end="125"></span> <span data-diff-start="126"></span> <span data-diff-end="126"></span> <span data-diff-start="127"></span>3. LAYER BREAKDOWN: What belongs in each layer? <span data-diff-end="127"></span> <span data-diff-start="128"></span> - What can and cannot reference what <span data-diff-end="128"></span> <span data-diff-start="129"></span> - Where business logic lives <span data-diff-end="129"></span> <span data-diff-start="130"></span> - Where external dependencies live <span data-diff-end="130"></span> <span data-diff-start="131"></span> <span data-diff-end="131"></span> <span data-diff-start="132"></span>4. DATA MODEL: What are the core entities and their invariants? <span data-diff-end="132"></span> <span data-diff-start="133"></span> - What rules must be enforced at the entity level (not just validation)? <span data-diff-end="133"></span> <span data-diff-start="134"></span> - What cannot be in an invalid state? <span data-diff-end="134"></span> <span data-diff-start="135"></span> <span data-diff-end="135"></span> <span data-diff-start="136"></span>5. EXTERNAL DEPENDENCIES: For each external system: <span data-diff-end="136"></span> <span data-diff-start="137"></span> - What is the failure mode? <span data-diff-end="137"></span> <span data-diff-start="138"></span> - How do we handle it gracefully? <span data-diff-end="138"></span> <span data-diff-start="139"></span> - What is our resilience strategy? <span data-diff-end="139"></span> <span data-diff-start="140"></span> <span data-diff-end="140"></span> <span data-diff-start="141"></span>6. TRADEOFFS: What are you consciously giving up with this design? <span data-diff-end="141"></span> <span data-diff-start="142"></span> <span data-diff-end="142"></span> <span data-diff-start="143"></span>7. WHAT CHANGES IN PRODUCTION vs THIS DESIGN: What simplifications are acceptable now but need to change before production? <span data-diff-end="143"></span> <span data-diff-start="144"></span> --- ### Prompt 2.2 — API contract design <span data-diff-end="150"></span> <span data-diff-start="151"></span>Design the API contract for [system name]. <span data-diff-end="151"></span> <span data-diff-start="152"></span> <span data-diff-end="152"></span> <span data-diff-start="153"></span>For each endpoint: <span data-diff-end="153"></span> <span data-diff-start="154"></span>1. HTTP method and route (versioned: /api/v1/...) <span data-diff-end="154"></span> <span data-diff-start="155"></span>2. Request body schema with field-level validation rules <span data-diff-end="155"></span> <span data-diff-start="156"></span>3. Response body schema <span data-diff-end="156"></span> <span data-diff-start="157"></span>4. Every possible HTTP status code and when it is returned <span data-diff-end="157"></span> <span data-diff-start="158"></span>5. Example request and response for the happy path <span data-diff-end="158"></span> <span data-diff-start="159"></span>6. Example response for each error case <span data-diff-end="159"></span> <span data-diff-start="160"></span> <span data-diff-end="160"></span> <span data-diff-start="161"></span>Rules: <span data-diff-end="161"></span> <span data-diff-start="162"></span>- All errors must be RFC 7807 Problem Details format (application/problem+json) <span data-diff-end="162"></span> <span data-diff-start="163"></span>- Validation errors (400) must include field-level detail <span data-diff-end="163"></span> <span data-diff-start="164"></span>- No stack traces in any response <span data-diff-end="164"></span> <span data-diff-start="165"></span>- Auth errors (401) must use the same message for wrong username AND wrong password <span data-diff-end="165"></span> <span data-diff-start="166"></span> <span data-diff-end="166"></span> <span data-diff-start="167"></span>Also specify: <span data-diff-end="167"></span> <span data-diff-start="168"></span>- API versioning strategy <span data-diff-end="168"></span> <span data-diff-start="169"></span>- Pagination strategy (if applicable) <span data-diff-end="169"></span> <span data-diff-start="170"></span>- Rate limiting strategy (if applicable) <span data-diff-end="170"></span> <span data-diff-start="171"></span> --- ### Prompt 2.3 — Data model design <span data-diff-end="177"></span> <span data-diff-start="178"></span>Design the data model for [system name]. <span data-diff-end="178"></span> <span data-diff-start="179"></span> <span data-diff-end="179"></span> <span data-diff-start="180"></span>For each entity: <span data-diff-end="180"></span> <span data-diff-start="181"></span>1. Fields with types and constraints <span data-diff-end="181"></span> <span data-diff-start="182"></span>2. Business invariants that must be enforced at the entity level (not in a controller or service) <span data-diff-end="182"></span> <span data-diff-start="183"></span>3. Factory method pattern — what is the only valid way to create this entity? <span data-diff-end="183"></span> <span data-diff-start="184"></span>4. What state transitions are allowed? <span data-diff-end="184"></span> <span data-diff-start="185"></span>5. What exceptions should be thrown when invariants are violated? <span data-diff-end="185"></span> <span data-diff-start="186"></span> <span data-diff-end="186"></span> <span data-diff-start="187"></span>Also design: <span data-diff-end="187"></span> <span data-diff-start="188"></span>- Database schema (table names, column types, indexes, constraints) <span data-diff-end="188"></span> <span data-diff-start="189"></span>- EF Core configuration needed <span data-diff-end="189"></span> <span data-diff-start="190"></span>- What rounding/precision rules apply to financial or decimal fields? <span data-diff-end="190"></span> <span data-diff-start="191"></span> <span data-diff-end="191"></span> <span data-diff-start="192"></span>Flag any fields where the default .NET behaviour is wrong for this domain <span data-diff-end="192"></span> <span data-diff-start="193"></span>(e.g. decimal rounding, DateTime vs DateOnly, UTC vs local time). <span data-diff-end="193"></span> <span data-diff-start="194"></span> --- ## PHASE 3 — ENVIRONMENT & PROJECT SETUP ### Prompt 3.1 — Project scaffold <span data-diff-end="202"></span> <span data-diff-start="203"></span>Scaffold a [.NET 8 / Node / Python] solution for [system name] following Clean Architecture. <span data-diff-end="203"></span> <span data-diff-start="204"></span> <span data-diff-end="204"></span> <span data-diff-start="205"></span>Create the project structure: <span data-diff-end="205"></span> <span data-diff-start="206"></span>- [ProjectName].Domain — entities, interfaces, exceptions, value objects <span data-diff-end="206"></span> <span data-diff-start="207"></span>- [ProjectName].Application — CQRS handlers, validators, service interfaces, pipeline behaviors <span data-diff-end="207"></span> <span data-diff-start="208"></span>- [ProjectName].Infrastructure — EF Core, external API clients, auth, repositories <span data-diff-end="208"></span> <span data-diff-start="209"></span>- [ProjectName].API — controllers, middleware, program.cs, swagger <span data-diff-end="209"></span> <span data-diff-start="210"></span>- tests/[ProjectName].Domain.Tests <span data-diff-end="210"></span> <span data-diff-start="211"></span>- tests/[ProjectName].Application.Tests <span data-diff-end="211"></span> <span data-diff-start="212"></span>- tests/[ProjectName].Infrastructure.Tests <span data-diff-end="212"></span> <span data-diff-start="213"></span>- tests/[ProjectName].API.IntegrationTests <span data-diff-end="213"></span> <span data-diff-start="214"></span> <span data-diff-end="214"></span> <span data-diff-start="215"></span>Also generate: <span data-diff-end="215"></span> <span data-diff-start="216"></span>- .editorconfig enforcing naming conventions from the instructions file <span data-diff-end="216"></span> <span data-diff-start="217"></span>- .gitignore (include environment-specific secret files) <span data-diff-end="217"></span> <span data-diff-start="218"></span>- docker-compose.yml with [database] + api + [ui if applicable] <span data-diff-end="218"></span> <span data-diff-start="219"></span>- GitHub Actions CI workflow: restore → format check → build → unit tests → integration tests <span data-diff-end="219"></span> <span data-diff-start="220"></span>- README.md with: what it does, how to run it, how to run tests, environment config table <span data-diff-end="220"></span> <span data-diff-start="221"></span> <span data-diff-end="221"></span> <span data-diff-start="222"></span>Do NOT generate any business logic yet. Structure only. <span data-diff-end="222"></span> <span data-diff-start="223"></span> --- ### Prompt 3.2 — Environment configuration strategy <span data-diff-end="229"></span> <span data-diff-start="230"></span>Generate the configuration strategy for [system name]. <span data-diff-end="230"></span> <span data-diff-start="231"></span> <span data-diff-end="231"></span> <span data-diff-start="232"></span>Create these appsettings files with the right content for each: <span data-diff-end="232"></span> <span data-diff-start="233"></span>- appsettings.json (shared base defaults — committed) <span data-diff-end="233"></span> <span data-diff-start="234"></span>- appsettings.Development.json (Docker Compose / CI overrides — committed) <span data-diff-end="234"></span> <span data-diff-start="235"></span>- appsettings.UAT.json (UAT with #{token}# placeholders for secrets — committed) <span data-diff-end="235"></span> <span data-diff-start="236"></span>- appsettings.Local.json (developer machine — git-ignored, never committed) <span data-diff-end="236"></span> <span data-diff-start="237"></span>- appsettings.Production.json (prod secrets — git-ignored, never committed) <span data-diff-end="237"></span> <span data-diff-start="238"></span> <span data-diff-end="238"></span> <span data-diff-start="239"></span>Rules: <span data-diff-end="239"></span> <span data-diff-start="240"></span>- No secrets in any committed file <span data-diff-end="240"></span> <span data-diff-start="241"></span>- JWT secrets and DB passwords go only in Local.json and Production.json <span data-diff-end="241"></span> <span data-diff-start="242"></span>- UAT uses pipeline token replacement syntax <span data-diff-end="242"></span> <span data-diff-start="243"></span>- All config must be bound to strongly-typed Options classes (not magic string lookups) <span data-diff-end="243"></span> <span data-diff-start="244"></span> <span data-diff-end="244"></span> <span data-diff-start="245"></span>Also add a startup check that fails fast with a clear message if required config is missing. <span data-diff-end="245"></span> <span data-diff-start="246"></span> --- ## PHASE 4 — DOMAIN LAYER FIRST ### Prompt 4.1 — Domain entity <span data-diff-end="254"></span> <span data-diff-start="255"></span>Create the [EntityName] domain entity following these rules from our copilot-instructions.md: <span data-diff-end="255"></span> <span data-diff-start="256"></span>[paste relevant rules] <span data-diff-end="256"></span> <span data-diff-start="257"></span> <span data-diff-end="257"></span> <span data-diff-start="258"></span>Requirements: <span data-diff-end="258"></span> <span data-diff-start="259"></span>- [field]: [type], [constraints] <span data-diff-end="259"></span> <span data-diff-start="260"></span>- [field]: [type], [constraints] <span data-diff-end="260"></span> <span data-diff-start="261"></span> <span data-diff-end="261"></span> <span data-diff-start="262"></span>Rules: <span data-diff-end="262"></span> <span data-diff-start="263"></span>1. Sealed class <span data-diff-end="263"></span> <span data-diff-start="264"></span>2. All properties private set <span data-diff-end="264"></span> <span data-diff-start="265"></span>3. Private parameterless constructor for EF Core only <span data-diff-end="265"></span> <span data-diff-start="266"></span>4. Static factory method Create() as the only valid way to construct the entity <span data-diff-end="266"></span> <span data-diff-start="267"></span>5. All invariants enforced at construction — throw typed exceptions, not generic ones <span data-diff-end="267"></span> <span data-diff-start="268"></span>6. Rounding rule for decimal fields: [specify AwayFromZero or other] <span data-diff-end="268"></span> <span data-diff-start="269"></span>7. No external dependencies (no EF Core, no MediatR, no anything) <span data-diff-end="269"></span> <span data-diff-start="270"></span> <span data-diff-end="270"></span> <span data-diff-start="271"></span>For each invariant violation, create a typed exception in Domain.Exceptions: <span data-diff-end="271"></span> <span data-diff-start="272"></span>- [ExceptionName] for [condition] — maps to HTTP [status] <span data-diff-end="272"></span> <span data-diff-start="273"></span> <span data-diff-end="273"></span> <span data-diff-start="274"></span>After creating the entity, tell me: <span data-diff-end="274"></span> <span data-diff-start="275"></span>1. What assumptions did you make? <span data-diff-end="275"></span> <span data-diff-start="276"></span>2. What edge cases did you NOT handle that I should think about? <span data-diff-end="276"></span> <span data-diff-start="277"></span>3. Is there any .NET default behaviour that could be surprising for this entity? <span data-diff-end="277"></span> <span data-diff-start="278"></span> --- ### Prompt 4.2 — Repository interface <span data-diff-end="284"></span> <span data-diff-start="285"></span>Create the repository interface for [EntityName] in Domain.Interfaces. <span data-diff-end="285"></span> <span data-diff-start="286"></span> <span data-diff-end="286"></span> <span data-diff-start="287"></span>Methods needed: <span data-diff-end="287"></span> <span data-diff-start="288"></span>- [describe each operation: add, get by id, list, update, delete] <span data-diff-end="288"></span> <span data-diff-start="289"></span> <span data-diff-end="289"></span> <span data-diff-start="290"></span>Rules: <span data-diff-end="290"></span> <span data-diff-start="291"></span>- Interface only — no implementation here <span data-diff-end="291"></span> <span data-diff-start="292"></span>- All methods async with CancellationToken as last parameter <span data-diff-end="292"></span> <span data-diff-start="293"></span>- Return types: use nullable reference types (T? for not-found, not exceptions) <span data-diff-end="293"></span> <span data-diff-start="294"></span>- No EF Core or infrastructure types in the interface <span data-diff-end="294"></span> <span data-diff-start="295"></span>- XML doc comments on every method explaining when null is returned vs when exception is thrown <span data-diff-end="295"></span> <span data-diff-start="296"></span> --- ### Prompt 4.3 — Domain unit tests <span data-diff-end="302"></span> <span data-diff-start="303"></span>Write unit tests for [EntityName] covering: <span data-diff-end="303"></span> <span data-diff-start="304"></span> <span data-diff-end="304"></span> <span data-diff-start="305"></span>1. All happy path factory method calls with valid data <span data-diff-end="305"></span> <span data-diff-start="306"></span>2. Every invariant violation (one test per rule) — verify the correct typed exception is thrown <span data-diff-end="306"></span> <span data-diff-start="307"></span>3. Boundary conditions for every constrained field (e.g. exactly at the limit, one over the limit) <span data-diff-end="307"></span> <span data-diff-start="308"></span>4. Rounding behaviour for any decimal fields — test the specific midpoint case (e.g. 1.005) <span data-diff-end="308"></span> <span data-diff-start="309"></span> <span data-diff-end="309"></span> <span data-diff-start="310"></span>Rules: <span data-diff-end="310"></span> <span data-diff-start="311"></span>- xUnit + FluentAssertions <span data-diff-end="311"></span> <span data-diff-start="312"></span>- Test naming: MethodName_Scenario_ExpectedBehaviour <span data-diff-end="312"></span> <span data-diff-start="313"></span>- AAA structure with blank line between sections <span data-diff-end="313"></span> <span data-diff-start="314"></span>- No logic in tests — one assertion per concept <span data-diff-end="314"></span> <span data-diff-start="315"></span>- Theory tests for boundary/rounding cases with InlineData <span data-diff-end="315"></span> <span data-diff-start="316"></span> <span data-diff-end="316"></span> <span data-diff-start="317"></span>After writing tests, run them mentally and tell me: <span data-diff-end="317"></span> <span data-diff-start="318"></span>- Which test is most likely to catch a future regression? <span data-diff-end="318"></span> <span data-diff-start="319"></span>- Which edge case did I not include that I should? <span data-diff-end="319"></span> <span data-diff-start="320"></span> --- ## PHASE 5 — APPLICATION LAYER ### Prompt 5.1 — Command (write operation) <span data-diff-end="328"></span> <span data-diff-start="329"></span>Create a Command for [operation name] in Application.Features.[FeatureName].Commands.[OperationName]. <span data-diff-end="329"></span> <span data-diff-start="330"></span> <span data-diff-end="330"></span> <span data-diff-start="331"></span>Operation: [describe what it does] <span data-diff-end="331"></span> <span data-diff-start="332"></span>Inputs: [list each input with type and validation rule] <span data-diff-end="332"></span> <span data-diff-start="333"></span>Output: [what is returned on success] <span data-diff-end="333"></span> <span data-diff-start="334"></span> <span data-diff-end="334"></span> <span data-diff-start="335"></span>Generate: <span data-diff-end="335"></span> <span data-diff-start="336"></span>1. [OperationName]Command as a sealed record implementing IRequest<[OutputType]> <span data-diff-end="336"></span> <span data-diff-start="337"></span>2. [OperationName]CommandValidator using FluentValidation <span data-diff-end="337"></span> <span data-diff-start="338"></span> - One rule per validation requirement <span data-diff-end="338"></span> <span data-diff-start="339"></span> - Reference domain constants for limits (don't hardcode values) <span data-diff-end="339"></span> <span data-diff-start="340"></span> - Custom error messages for each rule <span data-diff-end="340"></span> <span data-diff-start="341"></span>3. [OperationName]CommandHandler implementing IRequestHandler <span data-diff-end="341"></span> <span data-diff-start="342"></span> - Use domain entity factory method — don't construct entities directly <span data-diff-end="342"></span> <span data-diff-start="343"></span> - Structured logging before and after the operation <span data-diff-end="343"></span> <span data-diff-start="344"></span> - Use CancellationToken throughout <span data-diff-end="344"></span> <span data-diff-start="345"></span> - No try/catch — let typed exceptions propagate to the global handler <span data-diff-end="345"></span> <span data-diff-start="346"></span> <span data-diff-end="346"></span> <span data-diff-start="347"></span>Rules from our instructions file: <span data-diff-end="347"></span> <span data-diff-start="348"></span>[paste relevant rules] <span data-diff-end="348"></span> <span data-diff-start="349"></span> <span data-diff-end="349"></span> <span data-diff-start="350"></span>After generating, tell me: <span data-diff-end="350"></span> <span data-diff-start="351"></span>- Is there any business logic that belongs in the Domain layer, not this handler? <span data-diff-end="351"></span> <span data-diff-start="352"></span>- What are all the ways this operation can fail and which exceptions handle each? <span data-diff-end="352"></span> <span data-diff-start="353"></span> --- ### Prompt 5.2 — Query (read operation) <span data-diff-end="359"></span> <span data-diff-start="360"></span>Create a Query for [operation name] in Application.Features.[FeatureName].Queries.[OperationName]. <span data-diff-end="360"></span> <span data-diff-start="361"></span> <span data-diff-end="361"></span> <span data-diff-start="362"></span>Operation: [describe what it retrieves and any transformation] <span data-diff-end="362"></span> <span data-diff-start="363"></span>Inputs: [list each input with validation rule] <span data-diff-end="363"></span> <span data-diff-start="364"></span>Output: [describe the response shape] <span data-diff-end="364"></span> <span data-diff-start="365"></span> <span data-diff-end="365"></span> <span data-diff-start="366"></span>Generate: <span data-diff-end="366"></span> <span data-diff-start="367"></span>1. [OperationName]Query as a sealed record implementing IRequest<[ResponseType]> <span data-diff-end="367"></span> <span data-diff-start="368"></span>2. [OperationName]Response as a sealed record (DTO — no domain entities in response) <span data-diff-end="368"></span> <span data-diff-start="369"></span>3. [OperationName]QueryValidator using FluentValidation <span data-diff-end="369"></span> <span data-diff-start="370"></span>4. [OperationName]QueryHandler implementing IRequestHandler <span data-diff-end="370"></span> <span data-diff-start="371"></span> - Fetch from repository <span data-diff-end="371"></span> <span data-diff-start="372"></span> - Throw typed domain exception if not found (don't return null from handler) <span data-diff-end="372"></span> <span data-diff-start="373"></span> - Map entity to response DTO — no domain objects in the response <span data-diff-end="373"></span> <span data-diff-start="374"></span> - Structured logging <span data-diff-end="374"></span> <span data-diff-start="375"></span> <span data-diff-end="375"></span> <span data-diff-start="376"></span>Rules: <span data-diff-end="376"></span> <span data-diff-start="377"></span>- Handlers never return null — either a value or a typed exception <span data-diff-end="377"></span> <span data-diff-start="378"></span>- Response DTOs contain no domain logic <span data-diff-end="378"></span> <span data-diff-start="379"></span>- External service calls go through interfaces, not concrete classes <span data-diff-end="379"></span> <span data-diff-start="380"></span> --- ### Prompt 5.3 — Handler unit tests <span data-diff-end="386"></span> <span data-diff-start="387"></span>Write unit tests for [HandlerName] covering ALL of the following: <span data-diff-end="387"></span> <span data-diff-start="388"></span> <span data-diff-end="388"></span> <span data-diff-start="389"></span>Happy path: <span data-diff-end="389"></span> <span data-diff-start="390"></span>- [describe expected successful behaviour] <span data-diff-end="390"></span> <span data-diff-start="391"></span> <span data-diff-end="391"></span> <span data-diff-start="392"></span>Every failure path: <span data-diff-end="392"></span> <span data-diff-start="393"></span>- [list each exception the handler can throw and what triggers it] <span data-diff-end="393"></span> <span data-diff-start="394"></span> <span data-diff-end="394"></span> <span data-diff-start="395"></span>Edge cases: <span data-diff-end="395"></span> <span data-diff-start="396"></span>- [list any data transformation, normalisation, or rounding the handler does] <span data-diff-end="396"></span> <span data-diff-start="397"></span>- [list any external service interactions and their failure modes] <span data-diff-end="397"></span> <span data-diff-start="398"></span> <span data-diff-end="398"></span> <span data-diff-start="399"></span>Rules: <span data-diff-end="399"></span> <span data-diff-start="400"></span>- NSubstitute for all mocks: Substitute.For<IInterface>() <span data-diff-end="400"></span> <span data-diff-start="401"></span>- FluentAssertions for all assertions <span data-diff-end="401"></span> <span data-diff-start="402"></span>- Verify mock interactions with .Received(1) where relevant <span data-diff-end="402"></span> <span data-diff-start="403"></span>- Test naming: MethodName_Scenario_ExpectedBehaviour <span data-diff-end="403"></span> <span data-diff-start="404"></span>- No logic or loops in tests <span data-diff-end="404"></span> <span data-diff-start="405"></span>- Each test proves exactly one behaviour <span data-diff-end="405"></span> <span data-diff-start="406"></span> <span data-diff-end="406"></span> <span data-diff-start="407"></span>After writing tests, answer: <span data-diff-end="407"></span> <span data-diff-start="408"></span>1. Which mock interaction is most important to verify (not just the return value)? <span data-diff-end="408"></span> <span data-diff-start="409"></span>2. Is there a test case I am missing that a code reviewer would ask about? <span data-diff-end="409"></span> <span data-diff-start="410"></span> --- ## PHASE 6 — INFRASTRUCTURE LAYER ### Prompt 6.1 — Repository implementation <span data-diff-end="418"></span> <span data-diff-start="419"></span>Create the EF Core repository implementation for [EntityName]Repository. <span data-diff-end="419"></span> <span data-diff-start="420"></span> <span data-diff-end="420"></span> <span data-diff-start="421"></span>Implement [IEntityNameRepository] using AppDbContext. <span data-diff-end="421"></span> <span data-diff-start="422"></span> <span data-diff-end="422"></span> <span data-diff-start="423"></span>Rules: <span data-diff-end="423"></span> <span data-diff-start="424"></span>- Sealed class <span data-diff-end="424"></span> <span data-diff-start="425"></span>- Constructor injection of AppDbContext only <span data-diff-end="425"></span> <span data-diff-start="426"></span>- Use AsNoTracking() on all read operations <span data-diff-end="426"></span> <span data-diff-start="427"></span>- Never expose DbContext outside this class <span data-diff-end="427"></span> <span data-diff-start="428"></span>- SaveChangesAsync after every write — not batched unless specified <span data-diff-end="428"></span> <span data-diff-start="429"></span>- All methods async with CancellationToken <span data-diff-end="429"></span> <span data-diff-start="430"></span> <span data-diff-end="430"></span> <span data-diff-start="431"></span>Also create: <span data-diff-end="431"></span> <span data-diff-start="432"></span>- EF Core entity configuration class (IEntityTypeConfiguration<EntityName>) <span data-diff-end="432"></span> <span data-diff-start="433"></span> - Table name, column names, constraints, indexes <span data-diff-end="433"></span> <span data-diff-start="434"></span> - Any value conversions needed (e.g. DateOnly, enums) <span data-diff-end="434"></span> <span data-diff-start="435"></span> - Max length constraints matching domain entity constants <span data-diff-end="435"></span> <span data-diff-start="436"></span> <span data-diff-end="436"></span> <span data-diff-start="437"></span>After generating, tell me: <span data-diff-end="437"></span> <span data-diff-start="438"></span>- Is AsNoTracking() correct for all read operations here, or are there cases where tracking is needed? <span data-diff-end="438"></span> <span data-diff-start="439"></span>- Are there any N+1 query risks in these implementations? <span data-diff-end="439"></span> <span data-diff-start="440"></span> --- ### Prompt 6.2 — External service client <span data-diff-end="446"></span> <span data-diff-start="447"></span>Create an HTTP client for [ExternalServiceName]. <span data-diff-end="447"></span> <span data-diff-start="448"></span> <span data-diff-end="448"></span> <span data-diff-start="449"></span>The service does: [describe what it does] <span data-diff-end="449"></span> <span data-diff-start="450"></span>Base URL: [url] <span data-diff-end="450"></span> <span data-diff-start="451"></span>Endpoint: [endpoint path and query parameter format] <span data-diff-end="451"></span> <span data-diff-start="452"></span>Response format: [describe the JSON response structure] <span data-diff-end="452"></span> <span data-diff-start="453"></span> <span data-diff-end="453"></span> <span data-diff-start="454"></span>Generate: <span data-diff-end="454"></span> <span data-diff-start="455"></span>1. [ServiceName]Options — strongly-typed config bound from appsettings <span data-diff-end="455"></span> <span data-diff-start="456"></span> - BaseUrl, timeout, retry count, cache duration <span data-diff-end="456"></span> <span data-diff-start="457"></span>2. [ServiceName]Response — deserialisation models matching the actual API response <span data-diff-end="457"></span> <span data-diff-start="458"></span>3. [ServiceName]Service implementing I[ServiceName] (interface in Domain or Application) <span data-diff-end="458"></span> <span data-diff-start="459"></span> - IMemoryCache with TTL from options — include null results in cache <span data-diff-end="459"></span> <span data-diff-start="460"></span> - IHttpClientFactory registered as typed client <span data-diff-end="460"></span> <span data-diff-start="461"></span> - Polly retry with exponential backoff (not fixed delay — explain why in a comment) <span data-diff-end="461"></span> <span data-diff-start="462"></span> - Return null on failure — don't throw from the service, let the handler decide <span data-diff-end="462"></span> <span data-diff-start="463"></span> - Structured logging: debug on cache hit, info on API call, warning on miss, error on failure <span data-diff-end="463"></span> <span data-diff-start="464"></span> <span data-diff-end="464"></span> <span data-diff-start="465"></span>Rules: <span data-diff-end="465"></span> <span data-diff-start="466"></span>- Never throw from the service method — return null for unavailable <span data-diff-end="466"></span> <span data-diff-start="467"></span>- Log the actual URL being called at debug level (helps diagnose API issues) <span data-diff-end="467"></span> <span data-diff-start="468"></span>- Parse response carefully — use TryParse for numeric fields, don't assume format <span data-diff-end="468"></span> <span data-diff-start="469"></span>- Document any known quirks of the external API in comments <span data-diff-end="469"></span> <span data-diff-start="470"></span> <span data-diff-end="470"></span> <span data-diff-start="471"></span>Critical: After generating, I need to verify the field names against the real API. <span data-diff-end="471"></span> <span data-diff-start="472"></span>Tell me exactly what curl command I should run to verify the response structure <span data-diff-end="472"></span> <span data-diff-start="473"></span>before I trust any of this code. <span data-diff-end="473"></span> <span data-diff-start="474"></span> --- ### Prompt 6.3 — Dependency injection wiring <span data-diff-end="480"></span> <span data-diff-start="481"></span>Generate the Infrastructure DependencyInjection.cs extension method that registers: <span data-diff-end="481"></span> <span data-diff-start="482"></span>- EF Core DbContext with connection string from config <span data-diff-end="482"></span> <span data-diff-start="483"></span>- All repository implementations (scoped) <span data-diff-end="483"></span> <span data-diff-start="484"></span>- All external service clients with IHttpClientFactory and Polly policy <span data-diff-end="484"></span> <span data-diff-start="485"></span>- All Options bindings <span data-diff-end="485"></span> <span data-diff-start="486"></span>- JWT Bearer authentication with validation parameters from config <span data-diff-end="486"></span> <span data-diff-start="487"></span>- Memory cache <span data-diff-end="487"></span> <span data-diff-start="488"></span> <span data-diff-end="488"></span> <span data-diff-start="489"></span>Rules: <span data-diff-end="489"></span> <span data-diff-start="490"></span>- Extension method on IServiceCollection: AddInfrastructure(this IServiceCollection, IConfiguration) <span data-diff-end="490"></span> <span data-diff-start="491"></span>- Options pattern for all config — no raw string reads <span data-diff-end="491"></span> <span data-diff-start="492"></span>- Polly policy as a named private method with a comment explaining the retry strategy <span data-diff-end="492"></span> <span data-diff-start="493"></span>- Fail fast at startup if required config sections are missing <span data-diff-end="493"></span> <span data-diff-start="494"></span> <span data-diff-end="494"></span> <span data-diff-start="495"></span>After generating, tell me: <span data-diff-end="495"></span> <span data-diff-start="496"></span>- Are any of these registrations the wrong lifetime (singleton vs scoped vs transient)? <span data-diff-end="496"></span> <span data-diff-start="497"></span>- What happens if the database connection string is missing — does it fail at startup or runtime? <span data-diff-end="497"></span> <span data-diff-start="498"></span> --- ## PHASE 7 — API LAYER ### Prompt 7.1 — Controller <span data-diff-end="506"></span> <span data-diff-start="507"></span>Create [FeatureName]Controller for [system name]. <span data-diff-end="507"></span> <span data-diff-start="508"></span> <span data-diff-end="508"></span> <span data-diff-start="509"></span>Endpoints: <span data-diff-end="509"></span> <span data-diff-start="510"></span>[For each endpoint:] <span data-diff-end="510"></span> <span data-diff-start="511"></span>- HTTP method + route <span data-diff-end="511"></span> <span data-diff-start="512"></span>- Request model (record) <span data-diff-end="512"></span> <span data-diff-start="513"></span>- Response model (record) <span data-diff-end="513"></span> <span data-diff-start="514"></span>- MediatR command or query it dispatches <span data-diff-end="514"></span> <span data-diff-start="515"></span>- All HTTP status codes with ProducesResponseType attributes <span data-diff-end="515"></span> <span data-diff-start="516"></span> <span data-diff-end="516"></span> <span data-diff-start="517"></span>Rules: <span data-diff-end="517"></span> <span data-diff-start="518"></span>- Controller is thin — no business logic <span data-diff-end="518"></span> <span data-diff-start="519"></span>- Constructor injection of IMediator only <span data-diff-end="519"></span> <span data-diff-start="520"></span>- Async all the way with CancellationToken from the action method <span data-diff-end="520"></span> <span data-diff-start="521"></span>- XML doc comments on every action (used for Swagger) <span data-diff-end="521"></span> <span data-diff-start="522"></span>- Sealed class, [ApiVersion("1.0")] attribute <span data-diff-end="522"></span> <span data-diff-start="523"></span>- [Authorize] on the controller (or specific actions) <span data-diff-end="523"></span> <span data-diff-start="524"></span>- Map request model to command/query — do NOT pass request models to Application layer <span data-diff-end="524"></span> <span data-diff-start="525"></span> <span data-diff-end="525"></span> <span data-diff-start="526"></span>After generating: <span data-diff-end="526"></span> <span data-diff-start="527"></span>- Does any action contain logic that should be in a handler? <span data-diff-end="527"></span> <span data-diff-start="528"></span>- Are all the ProducesResponseType attributes complete for every error case? <span data-diff-end="528"></span> <span data-diff-start="529"></span> --- ### Prompt 7.2 — Global exception handler <span data-diff-end="535"></span> <span data-diff-start="536"></span>Create a GlobalExceptionHandler implementing IExceptionHandler. <span data-diff-end="536"></span> <span data-diff-start="537"></span> <span data-diff-end="537"></span> <span data-diff-start="538"></span>Map these exceptions to HTTP responses: <span data-diff-end="538"></span> <span data-diff-start="539"></span>[List each exception type → HTTP status → Problem Details title and detail] <span data-diff-end="539"></span> <span data-diff-start="540"></span> <span data-diff-end="540"></span> <span data-diff-start="541"></span>Rules: <span data-diff-end="541"></span> <span data-diff-start="542"></span>- Never expose stack traces in responses <span data-diff-end="542"></span> <span data-diff-start="543"></span>- All responses use RFC 7807 ProblemDetails with ContentType application/problem+json <span data-diff-end="543"></span> <span data-diff-start="544"></span>- Validation exceptions (FluentValidation) map to 400 with field-level error dictionary <span data-diff-end="544"></span> <span data-diff-start="545"></span>- Auth exceptions use STATIC messages — never include usernames, emails, or identifying info <span data-diff-end="545"></span> <span data-diff-start="546"></span>- Use C# switch expression (not if/else chain) <span data-diff-end="546"></span> <span data-diff-start="547"></span>- Log every exception at Error level with exception type and status code <span data-diff-end="547"></span> <span data-diff-start="548"></span>- Return true from TryHandleAsync to stop further handling <span data-diff-end="548"></span> <span data-diff-start="549"></span> <span data-diff-end="549"></span> <span data-diff-start="550"></span>Security check: For each exception that relates to authentication or user lookup, <span data-diff-end="550"></span> <span data-diff-start="551"></span>verify the error message cannot be used to determine whether a username exists. <span data-diff-end="551"></span> <span data-diff-start="552"></span> --- ### Prompt 7.3 — Middleware: Correlation ID <span data-diff-end="558"></span> <span data-diff-start="559"></span>Create CorrelationIdMiddleware for [system name]. <span data-diff-end="559"></span> <span data-diff-start="560"></span> <span data-diff-end="560"></span> <span data-diff-start="561"></span>Behaviour: <span data-diff-end="561"></span> <span data-diff-start="562"></span>1. Read X-Correlation-ID from request header if present <span data-diff-end="562"></span> <span data-diff-start="563"></span>2. If not present, generate a new GUID <span data-diff-end="563"></span> <span data-diff-start="564"></span>3. Push to Serilog LogContext so all log lines in this request include it <span data-diff-end="564"></span> <span data-diff-start="565"></span>4. Echo the correlation ID back in the response header <span data-diff-end="565"></span> <span data-diff-start="566"></span> <span data-diff-end="566"></span> <span data-diff-start="567"></span>Rules: <span data-diff-end="567"></span> <span data-diff-start="568"></span>- Middleware must work even if Serilog is not yet configured (failsafe) <span data-diff-end="568"></span> <span data-diff-start="569"></span>- The response header must be set BEFORE the next middleware runs (not after) <span data-diff-end="569"></span> <span data-diff-start="570"></span>- Use a constant for the header name <span data-diff-end="570"></span> <span data-diff-start="571"></span> <span data-diff-end="571"></span> <span data-diff-start="572"></span>Why the response header matters: Clients need the correlation ID to match their <span data-diff-end="572"></span> <span data-diff-start="573"></span>logs to server logs when reporting errors. Without it, debugging is blind. <span data-diff-end="573"></span> <span data-diff-start="574"></span> --- ## PHASE 8 — INTEGRATION TESTS ### Prompt 8.1 — Integration test setup <span data-diff-end="582"></span> <span data-diff-start="583"></span>Create the integration test setup for [system name] API. <span data-diff-end="583"></span> <span data-diff-start="584"></span> <span data-diff-end="584"></span> <span data-diff-start="585"></span>Use: <span data-diff-end="585"></span> <span data-diff-start="586"></span>- Microsoft.AspNetCore.Mvc.Testing (WebApplicationFactory) <span data-diff-end="586"></span> <span data-diff-start="587"></span>- In-memory database (or Testcontainers if PostgreSQL-specific behaviour needed) <span data-diff-end="587"></span> <span data-diff-start="588"></span>- Test-specific appsettings (appsettings.Testing.json) with known JWT config <span data-diff-end="588"></span> <span data-diff-start="589"></span> <span data-diff-end="589"></span> <span data-diff-start="590"></span>Create: <span data-diff-end="590"></span> <span data-diff-start="591"></span>1. CustomWebApplicationFactory that overrides: <span data-diff-end="591"></span> <span data-diff-start="592"></span> - Database connection (in-memory or test container) <span data-diff-end="592"></span> <span data-diff-start="593"></span> - JWT config (known test secret, issuer, audience) <span data-diff-end="593"></span> <span data-diff-start="594"></span> - Any external HTTP services (WireMock or NSubstitute) <span data-diff-end="594"></span> <span data-diff-start="595"></span>2. A helper method to get a valid JWT token for tests <span data-diff-end="595"></span> <span data-diff-start="596"></span>3. A base test class with HttpClient and auth setup <span data-diff-end="596"></span> <span data-diff-start="597"></span> <span data-diff-end="597"></span> <span data-diff-start="598"></span>Rules: <span data-diff-end="598"></span> <span data-diff-start="599"></span>- No real external API calls in integration tests — mock all HTTP dependencies <span data-diff-end="599"></span> <span data-diff-start="600"></span>- Tests must be runnable without any running infrastructure <span data-diff-end="600"></span> <span data-diff-start="601"></span>- JWT config in tests must match what the API validates <span data-diff-end="601"></span> <span data-diff-start="602"></span> --- ### Prompt 8.2 — Integration tests per endpoint <span data-diff-end="608"></span> <span data-diff-start="609"></span>Write integration tests for [endpoint] covering: <span data-diff-end="609"></span> <span data-diff-start="610"></span> <span data-diff-end="610"></span> <span data-diff-start="611"></span>Happy path: <span data-diff-end="611"></span> <span data-diff-start="612"></span>- [describe the successful scenario with specific inputs and expected outputs] <span data-diff-end="612"></span> <span data-diff-start="613"></span> <span data-diff-end="613"></span> <span data-diff-start="614"></span>Auth: <span data-diff-end="614"></span> <span data-diff-start="615"></span>- Request with no token returns 401 <span data-diff-end="615"></span> <span data-diff-start="616"></span>- Request with expired token returns 401 <span data-diff-end="616"></span> <span data-diff-start="617"></span> <span data-diff-end="617"></span> <span data-diff-start="618"></span>Validation: <span data-diff-end="618"></span> <span data-diff-start="619"></span>- [One test per validation rule — test the boundary, not just a random bad input] <span data-diff-end="619"></span> <span data-diff-start="620"></span> <span data-diff-end="620"></span> <span data-diff-start="621"></span>Error paths: <span data-diff-end="621"></span> <span data-diff-start="622"></span>- [Each domain error the endpoint can produce with the expected HTTP status] <span data-diff-end="622"></span> <span data-diff-start="623"></span> <span data-diff-end="623"></span> <span data-diff-start="624"></span>Rules: <span data-diff-end="624"></span> <span data-diff-start="625"></span>- Use HttpClient from WebApplicationFactory <span data-diff-end="625"></span> <span data-diff-start="626"></span>- Assert on: status code, Content-Type header, response body shape <span data-diff-end="626"></span> <span data-diff-start="627"></span>- For 400 errors: assert the field-level error is present in the response <span data-diff-end="627"></span> <span data-diff-start="628"></span>- For 422 errors: assert the detail message explains why <span data-diff-end="628"></span> <span data-diff-start="629"></span>- Test naming: Endpoint_Scenario_ExpectedBehaviour <span data-diff-end="629"></span> <span data-diff-start="630"></span> --- ## PHASE 9 — OBSERVABILITY & DOCKER ### Prompt 9.1 — Structured logging setup <span data-diff-end="638"></span> <span data-diff-start="639"></span>Configure Serilog for [system name] with: <span data-diff-end="639"></span> <span data-diff-start="640"></span> <span data-diff-end="640"></span> <span data-diff-start="641"></span>Local/Development: <span data-diff-end="641"></span> <span data-diff-start="642"></span>- Console sink with readable format <span data-diff-end="642"></span> <span data-diff-start="643"></span>- Minimum level: Debug for our namespaces, Warning for Microsoft/System <span data-diff-end="643"></span> <span data-diff-start="644"></span> <span data-diff-end="644"></span> <span data-diff-start="645"></span>Production: <span data-diff-end="645"></span> <span data-diff-start="646"></span>- JSON format (structured, machine-readable) <span data-diff-end="646"></span> <span data-diff-start="647"></span>- Minimum level: Information <span data-diff-end="647"></span> <span data-diff-start="648"></span> <span data-diff-end="648"></span> <span data-diff-start="649"></span>Enrich every log line with: <span data-diff-end="649"></span> <span data-diff-start="650"></span>- CorrelationId (from LogContext — set by middleware) <span data-diff-end="650"></span> <span data-diff-start="651"></span>- MachineName <span data-diff-end="651"></span> <span data-diff-start="652"></span>- ThreadId <span data-diff-end="652"></span> <span data-diff-start="653"></span>- Environment name <span data-diff-end="653"></span> <span data-diff-start="654"></span> <span data-diff-end="654"></span> <span data-diff-start="655"></span>appsettings sections for each environment. <span data-diff-end="655"></span> <span data-diff-start="656"></span> <span data-diff-end="656"></span> <span data-diff-start="657"></span>Rules: <span data-diff-end="657"></span> <span data-diff-start="658"></span>- All log calls use structured format: Log.Info("X {Id}", id) — never interpolation <span data-diff-end="658"></span> <span data-diff-start="659"></span>- Never log: request bodies, passwords, tokens, PII <span data-diff-end="659"></span> <span data-diff-start="660"></span>- Always log: transaction IDs, user IDs (not usernames), operation names, durations <span data-diff-end="660"></span> <span data-diff-start="661"></span> --- ### Prompt 9.2 — Docker and health checks <span data-diff-end="667"></span> <span data-diff-start="668"></span>Create production-ready Docker configuration for [system name]. <span data-diff-end="668"></span> <span data-diff-start="669"></span> <span data-diff-end="669"></span> <span data-diff-start="670"></span>1. Dockerfile for the API: <span data-diff-end="670"></span> <span data-diff-start="671"></span> - Multi-stage build (build stage + runtime stage) <span data-diff-end="671"></span> <span data-diff-start="672"></span> - Non-root user <span data-diff-end="672"></span> <span data-diff-start="673"></span> - Health check instruction <span data-diff-end="673"></span> <span data-diff-start="674"></span> - Minimal base image <span data-diff-end="674"></span> <span data-diff-start="675"></span> <span data-diff-end="675"></span> <span data-diff-start="676"></span>2. docker-compose.yml: <span data-diff-end="676"></span> <span data-diff-start="677"></span> - [database] service with healthcheck <span data-diff-end="677"></span> <span data-diff-start="678"></span> - API service that depends_on database with condition: service_healthy <span data-diff-end="678"></span> <span data-diff-start="679"></span> - [UI service if applicable] <span data-diff-end="679"></span> <span data-diff-start="680"></span> - No secrets hardcoded — use environment variables <span data-diff-end="680"></span> <span data-diff-start="681"></span> <span data-diff-end="681"></span> <span data-diff-start="682"></span>3. Health check endpoint at /health: <span data-diff-end="682"></span> <span data-diff-start="683"></span> - Liveness: is the process running? <span data-diff-end="683"></span> <span data-diff-start="684"></span> - Readiness: can it reach the database? <span data-diff-end="684"></span> <span data-diff-start="685"></span> - Wire to EF Core DbContext check <span data-diff-end="685"></span> <span data-diff-start="686"></span> <span data-diff-end="686"></span> <span data-diff-start="687"></span>Rules: <span data-diff-end="687"></span> <span data-diff-start="688"></span>- API must not start until database is healthy (use depends_on condition) <span data-diff-end="688"></span> <span data-diff-start="689"></span>- Health endpoint must not require auth <span data-diff-end="689"></span> <span data-diff-start="690"></span>- Response format: standard ASP.NET Core health check JSON <span data-diff-end="690"></span> <span data-diff-start="691"></span> --- ## PHASE 10 — AI SKILLS FOR THE TEAM ### Prompt 10.1 — Implement-requirement skill <span data-diff-end="699"></span> <span data-diff-start="700"></span>Create a Copilot skill for implementing new requirements in [system name]. <span data-diff-end="700"></span> <span data-diff-start="701"></span> <span data-diff-end="701"></span> <span data-diff-start="702"></span>Save as .github/skills/implement-requirement.md <span data-diff-end="702"></span> <span data-diff-start="703"></span> <span data-diff-end="703"></span> <span data-diff-start="704"></span>The skill must: <span data-diff-end="704"></span> <span data-diff-start="705"></span>1. Ask the user to paste the requirement <span data-diff-end="705"></span> <span data-diff-start="706"></span>2. Restate it in plain English with: inputs, outputs, validation rules, error scenarios, external dependencies <span data-diff-end="706"></span> <span data-diff-start="707"></span>3. Produce a layer-by-layer implementation plan (Domain → Application → Infrastructure → API → Tests) <span data-diff-end="707"></span> <span data-diff-start="708"></span> - List every file to be created or modified <span data-diff-end="708"></span> <span data-diff-start="709"></span> - List every test case by name <span data-diff-end="709"></span> <span data-diff-start="710"></span>4. STOP and ask for human approval before writing any code <span data-diff-end="710"></span> <span data-diff-start="711"></span>5. Implement in layer order after approval <span data-diff-end="711"></span> <span data-diff-start="712"></span>6. Run build and tests after each layer <span data-diff-end="712"></span> <span data-diff-start="713"></span>7. Produce a compliance report: architecture, quality gates, test results, files created <span data-diff-end="713"></span> <span data-diff-start="714"></span> <span data-diff-end="714"></span> <span data-diff-start="715"></span>The approval gate is non-negotiable — the skill must not generate code without it. <span data-diff-end="715"></span> <span data-diff-start="716"></span>The compliance report must include a table of every quality gate from our instructions file. <span data-diff-end="716"></span> <span data-diff-start="717"></span> --- ### Prompt 10.2 — Add-command and add-query skills <span data-diff-end="723"></span> <span data-diff-start="724"></span>Create two Copilot skills: <span data-diff-end="724"></span> <span data-diff-start="725"></span>1. .github/skills/add-command.md — for adding a new write operation <span data-diff-end="725"></span> <span data-diff-start="726"></span>2. .github/skills/add-query.md — for adding a new read operation <span data-diff-end="726"></span> <span data-diff-start="727"></span> <span data-diff-end="727"></span> <span data-diff-start="728"></span>Each skill should: <span data-diff-end="728"></span> <span data-diff-start="729"></span>- Ask for the operation name, inputs, output, and which existing feature it belongs to <span data-diff-end="729"></span> <span data-diff-start="730"></span>- Scaffold the correct files in the correct locations <span data-diff-end="730"></span> <span data-diff-start="731"></span>- Generate all unit tests (happy path + all failure paths) in the same step <span data-diff-end="731"></span> <span data-diff-start="732"></span>- Verify the files integrate correctly with existing DI registration <span data-diff-end="732"></span> <span data-diff-start="733"></span>- Run tests after scaffolding <span data-diff-end="733"></span> <span data-diff-start="734"></span> <span data-diff-end="734"></span> <span data-diff-start="735"></span>The add-command skill must explicitly ask: "Is there any state change in the Domain <span data-diff-end="735"></span> <span data-diff-start="736"></span>that this command triggers? If yes, should it be represented as a domain method <span data-diff-end="736"></span> <span data-diff-start="737"></span>rather than being constructed directly in the handler?" <span data-diff-end="737"></span> <span data-diff-start="738"></span> <span data-diff-end="738"></span> <span data-diff-start="739"></span>The add-query skill must explicitly ask: "Does this query require joining or <span data-diff-end="739"></span> <span data-diff-start="740"></span>aggregating data? If yes, consider a dedicated read model rather than using the <span data-diff-end="740"></span> <span data-diff-start="741"></span>write-side entity." <span data-diff-end="741"></span> <span data-diff-start="742"></span> --- ## PHASE 11 — BEFORE YOU SHIP ### Prompt 11.1 — Pre-launch checklist <span data-diff-end="750"></span> <span data-diff-start="751"></span>Perform a pre-launch review of [system name] covering: <span data-diff-end="751"></span> <span data-diff-start="752"></span> <span data-diff-end="752"></span> <span data-diff-start="753"></span>1. SECURITY REVIEW <span data-diff-end="753"></span> <span data-diff-start="754"></span> - Run the code-quality-check skill on every file <span data-diff-end="754"></span> <span data-diff-start="755"></span> - Check every auth endpoint for user enumeration risk <span data-diff-end="755"></span> <span data-diff-start="756"></span> - Check every external API call — is any sensitive data sent? <span data-diff-end="756"></span> <span data-diff-start="757"></span> - Check all log statements — is any PII logged? <span data-diff-end="757"></span> <span data-diff-start="758"></span> - Check all error responses — is any internal detail exposed? <span data-diff-end="758"></span> <span data-diff-start="759"></span> <span data-diff-end="759"></span> <span data-diff-start="760"></span>2. RESILIENCE REVIEW <span data-diff-end="760"></span> <span data-diff-start="761"></span> - For each external dependency: what happens when it is down for 30 seconds? 5 minutes? permanently? <span data-diff-end="761"></span> <span data-diff-start="762"></span> - Is there a circuit breaker or graceful degradation beyond retry? <span data-diff-end="762"></span> <span data-diff-start="763"></span> - What is the blast radius of each dependency failure? <span data-diff-end="763"></span> <span data-diff-start="764"></span> <span data-diff-end="764"></span> <span data-diff-start="765"></span>3. OBSERVABILITY REVIEW <span data-diff-end="765"></span> <span data-diff-start="766"></span> - Can you trace a complete request from API entry to database and back using only logs? <span data-diff-end="766"></span> <span data-diff-start="767"></span> - Does every log line include the correlation ID? <span data-diff-end="767"></span> <span data-diff-start="768"></span> - Are the health check endpoints correctly wired? <span data-diff-end="768"></span> <span data-diff-start="769"></span> - What is the first dashboard you would look at if the system went silent at 2am? <span data-diff-end="769"></span> <span data-diff-start="770"></span> <span data-diff-end="770"></span> <span data-diff-start="771"></span>4. CONFIGURATION REVIEW <span data-diff-end="771"></span> <span data-diff-start="772"></span> - Is there any config that, if missing, fails silently rather than at startup? <span data-diff-end="772"></span> <span data-diff-start="773"></span> - Are all secrets git-ignored? <span data-diff-end="773"></span> <span data-diff-start="774"></span> - Is the UAT config using token replacement syntax for all secrets? <span data-diff-end="774"></span> <span data-diff-start="775"></span> <span data-diff-end="775"></span> <span data-diff-start="776"></span>5. DOCUMENTATION REVIEW <span data-diff-end="776"></span> <span data-diff-start="777"></span> - Does the README have: what it does, one-command startup, test instructions, environment table? <span data-diff-end="777"></span> <span data-diff-start="778"></span> - Is every API endpoint documented in Swagger with all status codes? <span data-diff-end="778"></span> <span data-diff-start="779"></span> <span data-diff-end="779"></span> <span data-diff-start="780"></span>Produce a table: item, status (PASS/FAIL/REVIEW), action needed. <span data-diff-end="780"></span> <span data-diff-start="781"></span> --- ### Prompt 11.2 — Define your metrics baseline <span data-diff-end="787"></span> <span data-diff-start="788"></span>Before going live with [system name], define the metrics baseline. <span data-diff-end="788"></span> <span data-diff-start="789"></span> <span data-diff-end="789"></span> <span data-diff-start="790"></span>Generate a metrics definition document covering: <span data-diff-end="790"></span> <span data-diff-start="791"></span> <span data-diff-end="791"></span> <span data-diff-start="792"></span>DELIVERY METRICS (measure from day 1 of development): <span data-diff-end="792"></span> <span data-diff-start="793"></span>- How to measure PR cycle time <span data-diff-end="793"></span> <span data-diff-start="794"></span>- How to measure quality gate pass rate at first submission <span data-diff-end="794"></span> <span data-diff-start="795"></span>- How to measure build failure rate <span data-diff-end="795"></span> <span data-diff-start="796"></span> <span data-diff-end="796"></span> <span data-diff-start="797"></span>SYSTEM HEALTH METRICS (measure from day 1 in production): <span data-diff-end="797"></span> <span data-diff-start="798"></span>- What structured log fields to query for error rate <span data-diff-end="798"></span> <span data-diff-start="799"></span>- What structured log fields to query for [external service] failure rate <span data-diff-end="799"></span> <span data-diff-start="800"></span>- What the P99 response time target is and how to measure it <span data-diff-end="800"></span> <span data-diff-start="801"></span>- What a "normal" vs "concerning" value is for each metric <span data-diff-end="801"></span> <span data-diff-start="802"></span> <span data-diff-end="802"></span> <span data-diff-start="803"></span>AI TOOLING METRICS (measure per sprint): <span data-diff-end="803"></span> <span data-diff-start="804"></span>- How to count quality gate violations per developer <span data-diff-end="804"></span> <span data-diff-start="805"></span>- Which gates fail most often (tells you where to improve the context file) <span data-diff-end="805"></span> <span data-diff-start="806"></span>- How to track onboarding time to first PR <span data-diff-end="806"></span> <span data-diff-start="807"></span> <span data-diff-end="807"></span> <span data-diff-start="808"></span>For each metric: name, how to measure it, what a bad value looks like, what action to take. <span data-diff-end="808"></span> <span data-diff-start="809"></span> --- ## REUSABLE PROMPT PATTERNS > These patterns work for any project at any phase. --- ### Pattern: "What am I missing?" <span data-diff-end="821"></span> <span data-diff-start="822"></span>I have just [described/built/designed] [thing]. <span data-diff-end="822"></span> <span data-diff-start="823"></span> <span data-diff-end="823"></span> <span data-diff-start="824"></span>Before I move on, what am I most likely missing that: <span data-diff-end="824"></span> <span data-diff-start="825"></span>1. Would cause a production bug <span data-diff-end="825"></span> <span data-diff-start="826"></span>2. Would cause a security vulnerability <span data-diff-end="826"></span> <span data-diff-start="827"></span>3. Would cause a bad developer experience for the next person <span data-diff-end="827"></span> <span data-diff-start="828"></span>4. I would regret not catching in code review <span data-diff-end="828"></span> <span data-diff-start="829"></span> <span data-diff-end="829"></span> <span data-diff-start="830"></span>Be specific — give me the scenario, not just the category. <span data-diff-end="830"></span> <span data-diff-start="831"></span> --- ### Pattern: "Defend the tradeoff" <span data-diff-end="837"></span> <span data-diff-start="838"></span>I chose [approach A] over [approach B] for [component]. <span data-diff-end="838"></span> <span data-diff-start="839"></span> <span data-diff-end="839"></span> <span data-diff-start="840"></span>Play devil's advocate: <span data-diff-end="840"></span> <span data-diff-start="841"></span>1. What is the strongest argument that approach B was actually better? <span data-diff-end="841"></span> <span data-diff-start="842"></span>2. At what scale or team size does approach A start to break down? <span data-diff-end="842"></span> <span data-diff-start="843"></span>3. What is the single most likely failure mode of approach A that approach B would have avoided? <span data-diff-end="843"></span> <span data-diff-start="844"></span> <span data-diff-end="844"></span> <span data-diff-start="845"></span>I want to understand what I gave up, not just confirmation that I chose correctly. <span data-diff-end="845"></span> <span data-diff-start="846"></span> --- ### Pattern: "Review for the 3am engineer" <span data-diff-end="852"></span> <span data-diff-start="853"></span>Review [component/file] from the perspective of an on-call engineer who has never <span data-diff-end="853"></span> <span data-diff-start="854"></span>seen this codebase and is woken up at 3am because this component is failing. <span data-diff-end="854"></span> <span data-diff-start="855"></span> <span data-diff-end="855"></span> <span data-diff-start="856"></span>Tell me: <span data-diff-end="856"></span> <span data-diff-start="857"></span>1. Is it obvious from the logs what went wrong? <span data-diff-end="857"></span> <span data-diff-start="858"></span>2. Is it obvious from the code what this component is supposed to do? <span data-diff-end="858"></span> <span data-diff-start="859"></span>3. Is there anything that would cause confusion or a wrong assumption under pressure? <span data-diff-end="859"></span> <span data-diff-start="860"></span>4. What information is missing that would help them fix it faster? <span data-diff-end="860"></span> <span data-diff-start="861"></span> --- ### Pattern: "Security adversarial review" <span data-diff-end="867"></span> <span data-diff-start="868"></span>Review [component] as if you are an attacker looking for vulnerabilities. <span data-diff-end="868"></span> <span data-diff-start="869"></span> <span data-diff-end="869"></span> <span data-diff-start="870"></span>Specifically check: <span data-diff-end="870"></span> <span data-diff-start="871"></span>1. Can any error message reveal information about internal state or valid users? <span data-diff-end="871"></span> <span data-diff-start="872"></span>2. Can any input field be used for injection (SQL, command, log injection)? <span data-diff-end="872"></span> <span data-diff-start="873"></span>3. Is there any timing difference in responses that could be used for enumeration? <span data-diff-end="873"></span> <span data-diff-start="874"></span>4. Can any endpoint be called without auth that should require it? <span data-diff-end="874"></span> <span data-diff-start="875"></span>5. Is any sensitive data logged, cached, or included in a response where it shouldn't be? <span data-diff-end="875"></span> <span data-diff-start="876"></span> <span data-diff-end="876"></span> <span data-diff-start="877"></span>For each finding: severity (Critical/High/Medium), how to exploit it, how to fix it. <span data-diff-end="877"></span> <span data-diff-start="878"></span> --- ### Pattern: "Explain like I'll defend this in an interview" <span data-diff-end="884"></span> <span data-diff-start="885"></span>Explain [technical decision] in a way that: <span data-diff-end="885"></span> <span data-diff-start="886"></span>1. A non-technical stakeholder could understand the business reason <span data-diff-end="886"></span> <span data-diff-start="887"></span>2. A senior engineer would find technically rigorous <span data-diff-end="887"></span> <span data-diff-start="888"></span>3. I could defend if asked "why didn't you just do [simpler alternative]?" <span data-diff-end="888"></span> <span data-diff-start="889"></span> <span data-diff-end="889"></span> <span data-diff-start="890"></span>Include: what problem it solves, what it costs, what alternatives exist, and <span data-diff-end="890"></span> <span data-diff-start="891"></span>why this was the right choice for this specific project and team. <span data-diff-end="891"></span> <span data-diff-start="892"></span> --- ## QUICK REFERENCE — Phase Order <span data-diff-end="898"></span> <span data-diff-start="899"></span>Phase 0: Think before you prompt (no AI yet) <span data-diff-end="899"></span> <span data-diff-start="900"></span>Phase 1: Context file + quality gates → before any code <span data-diff-end="900"></span> <span data-diff-start="901"></span>Phase 2: System design + API contract + data model <span data-diff-end="901"></span> <span data-diff-start="902"></span>Phase 3: Project scaffold + environment config <span data-diff-end="902"></span> <span data-diff-start="903"></span>Phase 4: Domain layer (entity → interface → tests) <span data-diff-end="903"></span> <span data-diff-start="904"></span>Phase 5: Application layer (command → query → tests) <span data-diff-end="904"></span> <span data-diff-start="905"></span>Phase 6: Infrastructure layer (repo → external service → DI) <span data-diff-end="905"></span> <span data-diff-start="906"></span>Phase 7: API layer (controller → exception handler → middleware) <span data-diff-end="906"></span> <span data-diff-start="907"></span>Phase 8: Integration tests <span data-diff-end="907"></span> <span data-diff-start="908"></span>Phase 9: Observability + Docker <span data-diff-end="908"></span> <span data-diff-start="909"></span>Phase 10: Team AI skills <span data-diff-end="909"></span> <span data-diff-start="910"></span>Phase 11: Pre-launch + metrics baseline <span data-diff-end="910"></span> <span data-diff-start="911"></span> --- ## THE GOLDEN RULES OF AI-ASSISTED DEVELOPMENT <span data-diff-end="917"></span> <span data-diff-start="918"></span>1. Context first, code second — never generate code without a context file <span data-diff-end="918"></span> <span data-diff-start="919"></span>2. Test the real API on day one — never trust AI-generated field names for external APIs <span data-diff-end="919"></span> <span data-diff-start="920"></span>3. Wrong patterns become rules — every AI mistake goes into the context file <span data-diff-end="920"></span> <span data-diff-start="921"></span>4. Human approval before generation — every skill has an approval gate <span data-diff-end="921"></span> <span data-diff-start="922"></span>5. Verify, don't assume — run the tests, check the edge cases, call the endpoints <span data-diff-end="922"></span> <span data-diff-start="923"></span>6. You own every line — review every AI suggestion as if a junior wrote it <span data-diff-end="923"></span> <span data-diff-start="924"></span>7. Metrics from the start — define what "working" looks like before you build it <span data-diff-end="924"></span> <span data-diff-start="925"></span>8. Security is not a phase — it is in every prompt, every review, every gate <span data-diff-end="925"></span> <span data-diff-start="926"></span> --- Created: 2026-06-11 Use this playbook for every new project. Update it as you learn.
+# AI-Assisted Project Playbook
+## Step-by-Step Prompts from Ideation to Production
+
+> Use this as your personal playbook every time you start a new project.
+> Copy-paste each prompt, fill in the `[brackets]`, and follow the steps in order.
+> Never skip a phase — each one builds context for the next.
+
+---
+
+## PHASE 0 — BEFORE YOU OPEN AN IDE
+
+> Do this on paper or in a notes file. No AI yet. This is your thinking.
+
+### Questions to answer yourself first
+
+```
+1. What problem am I solving? (One sentence — not a feature list)
+2. Who uses this system?
+3. What are the 3 most likely failure modes?
+4. What external systems does this depend on?
+5. Who will maintain this after I build it?
+6. What is the team size and skill distribution?
+7. What does "done" look like — what metrics prove it works?
+```
+
+> **Why before AI?** If you ask AI to define your problem, it will define a generic version of it. You need to own the problem statement before you ask for help building the solution.
+
+---
+
+## PHASE 1 — ESTABLISH THE CONTEXT FILE
+### (Do this before writing a single line of application code)
+
+This is the most important step. Everything after this is filtered through this file.
+
+---
+
+### Prompt 1.1 — Generate the architecture constitution
+
+```
+I am starting a new [web API / full-stack app / microservice] project.
+
+The system is: [describe what it does in 2-3 sentences]
+
+Tech stack:
+- Backend: [e.g. .NET 8 / Node.js / Python FastAPI]
+- Frontend: [e.g. Angular 19 / React / None]
+- Database: [e.g. PostgreSQL / SQL Server / MongoDB]
+- Auth: [e.g. JWT / OAuth2 / API Key]
+
+The team is: [e.g. 6 engineers, mix of mid and senior, full-stack]
+
+Generate a copilot-instructions.md file for this project that encodes:
+1. Architecture pattern and strict dependency rules (e.g. Clean Architecture layers)
+2. Naming conventions for every artifact type (commands, queries, services, repos, tests)
+3. Error handling standards (exception types, HTTP status mapping, response format)
+4. Logging standards (structured logging rules, what to log, what NOT to log)
+5. Security rules (input validation, secrets, SQL injection, PII)
+6. Testing standards (tools, naming convention, structure, what must be tested)
+7. Async/await rules
+8. Configuration management rules
+
+For each rule, include:
+- The rule itself
+- WHY the rule exists (for a developer reading it)
+- An example of the WRONG pattern
+- An example of the CORRECT pattern
+
+This file will be loaded by GitHub Copilot automatically for every conversation.
+```
+
+---
+
+### Prompt 1.2 — Review and harden the context file
+
+```
+Review the copilot-instructions.md you just generated.
+
+For each section, ask:
+1. Is this rule specific enough that a developer cannot misinterpret it?
+2. Does it include a concrete wrong/right example?
+3. Are there any common AI-generated anti-patterns this section doesn't protect against?
+
+Specifically check:
+- Does the logging section explicitly prohibit string interpolation in log calls?
+- Does the security section cover auth responses that could enable user enumeration?
+- Does the error handling section specify the exact HTTP status for each error type?
+- Does the test section require tests for ALL failure paths, not just happy path?
+
+Improve any sections that are too vague.
+```
+
+---
+
+### Prompt 1.3 — Generate the quality gate skill
+
+```
+Based on the copilot-instructions.md above, generate a pre-PR code quality check skill.
+
+The skill should:
+1. Review all changed files against every rule in the instructions file
+2. Be structured as numbered gates (Architecture, SOLID, Null Safety, Async, Logging, Security, Error Handling, Tests)
+3. For each gate: list specific checks as checkboxes
+4. Output format: PASS gates listed, then VIOLATIONS with file:line:suggestion, then final PASS/FAIL verdict
+5. Never pass a file with a security violation regardless of other gate results
+
+Save this as .github/skills/code-quality-check.md
+```
+
+---
+
+## PHASE 2 — SYSTEM DESIGN
+
+### Prompt 2.1 — Architecture decision record
+
+```
+I am designing [system name]. Here is what it needs to do:
+[paste your problem statement and requirements]
+
+Generate an Architecture Decision Record (ADR) covering:
+
+1. CONTEXT: What problem are we solving and what constraints exist?
+
+2. DECISION: What architectural pattern do we use and why?
+   - Justify the choice over 2 alternatives you considered
+   - What does this pattern cost the team (learning curve, complexity)?
+   - What does it give the team (parallelism, testability, maintainability)?
+
+3. LAYER BREAKDOWN: What belongs in each layer?
+   - What can and cannot reference what
+   - Where business logic lives
+   - Where external dependencies live
+
+4. DATA MODEL: What are the core entities and their invariants?
+   - What rules must be enforced at the entity level (not just validation)?
+   - What cannot be in an invalid state?
+
+5. EXTERNAL DEPENDENCIES: For each external system:
+   - What is the failure mode?
+   - How do we handle it gracefully?
+   - What is our resilience strategy?
+
+6. TRADEOFFS: What are you consciously giving up with this design?
+
+7. WHAT CHANGES IN PRODUCTION vs THIS DESIGN: What simplifications are acceptable now but need to change before production?
+```
+
+---
+
+### Prompt 2.2 — API contract design
+
+```
+Design the API contract for [system name].
+
+For each endpoint:
+1. HTTP method and route (versioned: /api/v1/...)
+2. Request body schema with field-level validation rules
+3. Response body schema
+4. Every possible HTTP status code and when it is returned
+5. Example request and response for the happy path
+6. Example response for each error case
+
+Rules:
+- All errors must be RFC 7807 Problem Details format (application/problem+json)
+- Validation errors (400) must include field-level detail
+- No stack traces in any response
+- Auth errors (401) must use the same message for wrong username AND wrong password
+
+Also specify:
+- API versioning strategy
+- Pagination strategy (if applicable)
+- Rate limiting strategy (if applicable)
+```
+
+---
+
+### Prompt 2.3 — Data model design
+
+```
+Design the data model for [system name].
+
+For each entity:
+1. Fields with types and constraints
+2. Business invariants that must be enforced at the entity level (not in a controller or service)
+3. Factory method pattern — what is the only valid way to create this entity?
+4. What state transitions are allowed?
+5. What exceptions should be thrown when invariants are violated?
+
+Also design:
+- Database schema (table names, column types, indexes, constraints)
+- EF Core configuration needed
+- What rounding/precision rules apply to financial or decimal fields?
+
+Flag any fields where the default .NET behaviour is wrong for this domain
+(e.g. decimal rounding, DateTime vs DateOnly, UTC vs local time).
+```
+
+---
+
+## PHASE 3 — ENVIRONMENT & PROJECT SETUP
+
+### Prompt 3.1 — Project scaffold
+
+```
+Scaffold a [.NET 8 / Node / Python] solution for [system name] following Clean Architecture.
+
+Create the project structure:
+- [ProjectName].Domain — entities, interfaces, exceptions, value objects
+- [ProjectName].Application — CQRS handlers, validators, service interfaces, pipeline behaviors
+- [ProjectName].Infrastructure — EF Core, external API clients, auth, repositories
+- [ProjectName].API — controllers, middleware, program.cs, swagger
+- tests/[ProjectName].Domain.Tests
+- tests/[ProjectName].Application.Tests
+- tests/[ProjectName].Infrastructure.Tests
+- tests/[ProjectName].API.IntegrationTests
+
+Also generate:
+- .editorconfig enforcing naming conventions from the instructions file
+- .gitignore (include environment-specific secret files)
+- docker-compose.yml with [database] + api + [ui if applicable]
+- GitHub Actions CI workflow: restore → format check → build → unit tests → integration tests
+- README.md with: what it does, how to run it, how to run tests, environment config table
+
+Do NOT generate any business logic yet. Structure only.
+```
+
+---
+
+### Prompt 3.2 — Environment configuration strategy
+
+```
+Generate the configuration strategy for [system name].
+
+Create these appsettings files with the right content for each:
+- appsettings.json (shared base defaults — committed)
+- appsettings.Development.json (Docker Compose / CI overrides — committed)
+- appsettings.UAT.json (UAT with #{token}# placeholders for secrets — committed)
+- appsettings.Local.json (developer machine — git-ignored, never committed)
+- appsettings.Production.json (prod secrets — git-ignored, never committed)
+
+Rules:
+- No secrets in any committed file
+- JWT secrets and DB passwords go only in Local.json and Production.json
+- UAT uses pipeline token replacement syntax
+- All config must be bound to strongly-typed Options classes (not magic string lookups)
+
+Also add a startup check that fails fast with a clear message if required config is missing.
+```
+
+---
+
+## PHASE 4 — DOMAIN LAYER FIRST
+
+### Prompt 4.1 — Domain entity
+
+```
+Create the [EntityName] domain entity following these rules from our copilot-instructions.md:
+[paste relevant rules]
+
+Requirements:
+- [field]: [type], [constraints]
+- [field]: [type], [constraints]
+
+Rules:
+1. Sealed class
+2. All properties private set
+3. Private parameterless constructor for EF Core only
+4. Static factory method Create() as the only valid way to construct the entity
+5. All invariants enforced at construction — throw typed exceptions, not generic ones
+6. Rounding rule for decimal fields: [specify AwayFromZero or other]
+7. No external dependencies (no EF Core, no MediatR, no anything)
+
+For each invariant violation, create a typed exception in Domain.Exceptions:
+- [ExceptionName] for [condition] — maps to HTTP [status]
+
+After creating the entity, tell me:
+1. What assumptions did you make?
+2. What edge cases did you NOT handle that I should think about?
+3. Is there any .NET default behaviour that could be surprising for this entity?
+```
+
+---
+
+### Prompt 4.2 — Repository interface
+
+```
+Create the repository interface for [EntityName] in Domain.Interfaces.
+
+Methods needed:
+- [describe each operation: add, get by id, list, update, delete]
+
+Rules:
+- Interface only — no implementation here
+- All methods async with CancellationToken as last parameter
+- Return types: use nullable reference types (T? for not-found, not exceptions)
+- No EF Core or infrastructure types in the interface
+- XML doc comments on every method explaining when null is returned vs when exception is thrown
+```
+
+---
+
+### Prompt 4.3 — Domain unit tests
+
+```
+Write unit tests for [EntityName] covering:
+
+1. All happy path factory method calls with valid data
+2. Every invariant violation (one test per rule) — verify the correct typed exception is thrown
+3. Boundary conditions for every constrained field (e.g. exactly at the limit, one over the limit)
+4. Rounding behaviour for any decimal fields — test the specific midpoint case (e.g. 1.005)
+
+Rules:
+- xUnit + FluentAssertions
+- Test naming: MethodName_Scenario_ExpectedBehaviour
+- AAA structure with blank line between sections
+- No logic in tests — one assertion per concept
+- Theory tests for boundary/rounding cases with InlineData
+
+After writing tests, run them mentally and tell me:
+- Which test is most likely to catch a future regression?
+- Which edge case did I not include that I should?
+```
+
+---
+
+## PHASE 5 — APPLICATION LAYER
+
+### Prompt 5.1 — Command (write operation)
+
+```
+Create a Command for [operation name] in Application.Features.[FeatureName].Commands.[OperationName].
+
+Operation: [describe what it does]
+Inputs: [list each input with type and validation rule]
+Output: [what is returned on success]
+
+Generate:
+1. [OperationName]Command as a sealed record implementing IRequest<[OutputType]>
+2. [OperationName]CommandValidator using FluentValidation
+   - One rule per validation requirement
+   - Reference domain constants for limits (don't hardcode values)
+   - Custom error messages for each rule
+3. [OperationName]CommandHandler implementing IRequestHandler
+   - Use domain entity factory method — don't construct entities directly
+   - Structured logging before and after the operation
+   - Use CancellationToken throughout
+   - No try/catch — let typed exceptions propagate to the global handler
+
+Rules from our instructions file:
+[paste relevant rules]
+
+After generating, tell me:
+- Is there any business logic that belongs in the Domain layer, not this handler?
+- What are all the ways this operation can fail and which exceptions handle each?
+```
+
+---
+
+### Prompt 5.2 — Query (read operation)
+
+```
+Create a Query for [operation name] in Application.Features.[FeatureName].Queries.[OperationName].
+
+Operation: [describe what it retrieves and any transformation]
+Inputs: [list each input with validation rule]
+Output: [describe the response shape]
+
+Generate:
+1. [OperationName]Query as a sealed record implementing IRequest<[ResponseType]>
+2. [OperationName]Response as a sealed record (DTO — no domain entities in response)
+3. [OperationName]QueryValidator using FluentValidation
+4. [OperationName]QueryHandler implementing IRequestHandler
+   - Fetch from repository
+   - Throw typed domain exception if not found (don't return null from handler)
+   - Map entity to response DTO — no domain objects in the response
+   - Structured logging
+
+Rules:
+- Handlers never return null — either a value or a typed exception
+- Response DTOs contain no domain logic
+- External service calls go through interfaces, not concrete classes
+```
+
+---
+
+### Prompt 5.3 — Handler unit tests
+
+```
+Write unit tests for [HandlerName] covering ALL of the following:
+
+Happy path:
+- [describe expected successful behaviour]
+
+Every failure path:
+- [list each exception the handler can throw and what triggers it]
+
+Edge cases:
+- [list any data transformation, normalisation, or rounding the handler does]
+- [list any external service interactions and their failure modes]
+
+Rules:
+- NSubstitute for all mocks: Substitute.For<IInterface>()
+- FluentAssertions for all assertions
+- Verify mock interactions with .Received(1) where relevant
+- Test naming: MethodName_Scenario_ExpectedBehaviour
+- No logic or loops in tests
+- Each test proves exactly one behaviour
+
+After writing tests, answer:
+1. Which mock interaction is most important to verify (not just the return value)?
+2. Is there a test case I am missing that a code reviewer would ask about?
+```
+
+---
+
+## PHASE 6 — INFRASTRUCTURE LAYER
+
+### Prompt 6.1 — Repository implementation
+
+```
+Create the EF Core repository implementation for [EntityName]Repository.
+
+Implement [IEntityNameRepository] using AppDbContext.
+
+Rules:
+- Sealed class
+- Constructor injection of AppDbContext only
+- Use AsNoTracking() on all read operations
+- Never expose DbContext outside this class
+- SaveChangesAsync after every write — not batched unless specified
+- All methods async with CancellationToken
+
+Also create:
+- EF Core entity configuration class (IEntityTypeConfiguration<EntityName>)
+  - Table name, column names, constraints, indexes
+  - Any value conversions needed (e.g. DateOnly, enums)
+  - Max length constraints matching domain entity constants
+
+After generating, tell me:
+- Is AsNoTracking() correct for all read operations here, or are there cases where tracking is needed?
+- Are there any N+1 query risks in these implementations?
+```
+
+---
+
+### Prompt 6.2 — External service client
+
+```
+Create an HTTP client for [ExternalServiceName].
+
+The service does: [describe what it does]
+Base URL: [url]
+Endpoint: [endpoint path and query parameter format]
+Response format: [describe the JSON response structure]
+
+Generate:
+1. [ServiceName]Options — strongly-typed config bound from appsettings
+   - BaseUrl, timeout, retry count, cache duration
+2. [ServiceName]Response — deserialisation models matching the actual API response
+3. [ServiceName]Service implementing I[ServiceName] (interface in Domain or Application)
+   - IMemoryCache with TTL from options — include null results in cache
+   - IHttpClientFactory registered as typed client
+   - Polly retry with exponential backoff (not fixed delay — explain why in a comment)
+   - Return null on failure — don't throw from the service, let the handler decide
+   - Structured logging: debug on cache hit, info on API call, warning on miss, error on failure
+
+Rules:
+- Never throw from the service method — return null for unavailable
+- Log the actual URL being called at debug level (helps diagnose API issues)
+- Parse response carefully — use TryParse for numeric fields, don't assume format
+- Document any known quirks of the external API in comments
+
+Critical: After generating, I need to verify the field names against the real API.
+Tell me exactly what curl command I should run to verify the response structure
+before I trust any of this code.
+```
+
+---
+
+### Prompt 6.3 — Dependency injection wiring
+
+```
+Generate the Infrastructure DependencyInjection.cs extension method that registers:
+- EF Core DbContext with connection string from config
+- All repository implementations (scoped)
+- All external service clients with IHttpClientFactory and Polly policy
+- All Options bindings
+- JWT Bearer authentication with validation parameters from config
+- Memory cache
+
+Rules:
+- Extension method on IServiceCollection: AddInfrastructure(this IServiceCollection, IConfiguration)
+- Options pattern for all config — no raw string reads
+- Polly policy as a named private method with a comment explaining the retry strategy
+- Fail fast at startup if required config sections are missing
+
+After generating, tell me:
+- Are any of these registrations the wrong lifetime (singleton vs scoped vs transient)?
+- What happens if the database connection string is missing — does it fail at startup or runtime?
+```
+
+---
+
+## PHASE 7 — API LAYER
+
+### Prompt 7.1 — Controller
+
+```
+Create [FeatureName]Controller for [system name].
+
+Endpoints:
+[For each endpoint:]
+- HTTP method + route
+- Request model (record)
+- Response model (record)
+- MediatR command or query it dispatches
+- All HTTP status codes with ProducesResponseType attributes
+
+Rules:
+- Controller is thin — no business logic
+- Constructor injection of IMediator only
+- Async all the way with CancellationToken from the action method
+- XML doc comments on every action (used for Swagger)
+- Sealed class, [ApiVersion("1.0")] attribute
+- [Authorize] on the controller (or specific actions)
+- Map request model to command/query — do NOT pass request models to Application layer
+
+After generating:
+- Does any action contain logic that should be in a handler?
+- Are all the ProducesResponseType attributes complete for every error case?
+```
+
+---
+
+### Prompt 7.2 — Global exception handler
+
+```
+Create a GlobalExceptionHandler implementing IExceptionHandler.
+
+Map these exceptions to HTTP responses:
+[List each exception type → HTTP status → Problem Details title and detail]
+
+Rules:
+- Never expose stack traces in responses
+- All responses use RFC 7807 ProblemDetails with ContentType application/problem+json
+- Validation exceptions (FluentValidation) map to 400 with field-level error dictionary
+- Auth exceptions use STATIC messages — never include usernames, emails, or identifying info
+- Use C# switch expression (not if/else chain)
+- Log every exception at Error level with exception type and status code
+- Return true from TryHandleAsync to stop further handling
+
+Security check: For each exception that relates to authentication or user lookup,
+verify the error message cannot be used to determine whether a username exists.
+```
+
+---
+
+### Prompt 7.3 — Middleware: Correlation ID
+
+```
+Create CorrelationIdMiddleware for [system name].
+
+Behaviour:
+1. Read X-Correlation-ID from request header if present
+2. If not present, generate a new GUID
+3. Push to Serilog LogContext so all log lines in this request include it
+4. Echo the correlation ID back in the response header
+
+Rules:
+- Middleware must work even if Serilog is not yet configured (failsafe)
+- The response header must be set BEFORE the next middleware runs (not after)
+- Use a constant for the header name
+
+Why the response header matters: Clients need the correlation ID to match their
+logs to server logs when reporting errors. Without it, debugging is blind.
+```
+
+---
+
+## PHASE 8 — INTEGRATION TESTS
+
+### Prompt 8.1 — Integration test setup
+
+```
+Create the integration test setup for [system name] API.
+
+Use:
+- Microsoft.AspNetCore.Mvc.Testing (WebApplicationFactory)
+- In-memory database (or Testcontainers if PostgreSQL-specific behaviour needed)
+- Test-specific appsettings (appsettings.Testing.json) with known JWT config
+
+Create:
+1. CustomWebApplicationFactory that overrides:
+   - Database connection (in-memory or test container)
+   - JWT config (known test secret, issuer, audience)
+   - Any external HTTP services (WireMock or NSubstitute)
+2. A helper method to get a valid JWT token for tests
+3. A base test class with HttpClient and auth setup
+
+Rules:
+- No real external API calls in integration tests — mock all HTTP dependencies
+- Tests must be runnable without any running infrastructure
+- JWT config in tests must match what the API validates
+```
+
+---
+
+### Prompt 8.2 — Integration tests per endpoint
+
+```
+Write integration tests for [endpoint] covering:
+
+Happy path:
+- [describe the successful scenario with specific inputs and expected outputs]
+
+Auth:
+- Request with no token returns 401
+- Request with expired token returns 401
+
+Validation:
+- [One test per validation rule — test the boundary, not just a random bad input]
+
+Error paths:
+- [Each domain error the endpoint can produce with the expected HTTP status]
+
+Rules:
+- Use HttpClient from WebApplicationFactory
+- Assert on: status code, Content-Type header, response body shape
+- For 400 errors: assert the field-level error is present in the response
+- For 422 errors: assert the detail message explains why
+- Test naming: Endpoint_Scenario_ExpectedBehaviour
+```
+
+---
+
+## PHASE 9 — OBSERVABILITY & DOCKER
+
+### Prompt 9.1 — Structured logging setup
+
+```
+Configure Serilog for [system name] with:
+
+Local/Development:
+- Console sink with readable format
+- Minimum level: Debug for our namespaces, Warning for Microsoft/System
+
+Production:
+- JSON format (structured, machine-readable)
+- Minimum level: Information
+
+Enrich every log line with:
+- CorrelationId (from LogContext — set by middleware)
+- MachineName
+- ThreadId
+- Environment name
+
+appsettings sections for each environment.
+
+Rules:
+- All log calls use structured format: Log.Info("X {Id}", id) — never interpolation
+- Never log: request bodies, passwords, tokens, PII
+- Always log: transaction IDs, user IDs (not usernames), operation names, durations
+```
+
+---
+
+### Prompt 9.2 — Docker and health checks
+
+```
+Create production-ready Docker configuration for [system name].
+
+1. Dockerfile for the API:
+   - Multi-stage build (build stage + runtime stage)
+   - Non-root user
+   - Health check instruction
+   - Minimal base image
+
+2. docker-compose.yml:
+   - [database] service with healthcheck
+   - API service that depends_on database with condition: service_healthy
+   - [UI service if applicable]
+   - No secrets hardcoded — use environment variables
+
+3. Health check endpoint at /health:
+   - Liveness: is the process running?
+   - Readiness: can it reach the database?
+   - Wire to EF Core DbContext check
+
+Rules:
+- API must not start until database is healthy (use depends_on condition)
+- Health endpoint must not require auth
+- Response format: standard ASP.NET Core health check JSON
+```
+
+---
+
+## PHASE 10 — AI SKILLS FOR THE TEAM
+
+### Prompt 10.1 — Implement-requirement skill
+
+```
+Create a Copilot skill for implementing new requirements in [system name].
+
+Save as .github/skills/implement-requirement.md
+
+The skill must:
+1. Ask the user to paste the requirement
+2. Restate it in plain English with: inputs, outputs, validation rules, error scenarios, external dependencies
+3. Produce a layer-by-layer implementation plan (Domain → Application → Infrastructure → API → Tests)
+   - List every file to be created or modified
+   - List every test case by name
+4. STOP and ask for human approval before writing any code
+5. Implement in layer order after approval
+6. Run build and tests after each layer
+7. Produce a compliance report: architecture, quality gates, test results, files created
+
+The approval gate is non-negotiable — the skill must not generate code without it.
+The compliance report must include a table of every quality gate from our instructions file.
+```
+
+---
+
+### Prompt 10.2 — Add-command and add-query skills
+
+```
+Create two Copilot skills:
+1. .github/skills/add-command.md — for adding a new write operation
+2. .github/skills/add-query.md — for adding a new read operation
+
+Each skill should:
+- Ask for the operation name, inputs, output, and which existing feature it belongs to
+- Scaffold the correct files in the correct locations
+- Generate all unit tests (happy path + all failure paths) in the same step
+- Verify the files integrate correctly with existing DI registration
+- Run tests after scaffolding
+
+The add-command skill must explicitly ask: "Is there any state change in the Domain
+that this command triggers? If yes, should it be represented as a domain method
+rather than being constructed directly in the handler?"
+
+The add-query skill must explicitly ask: "Does this query require joining or 
+aggregating data? If yes, consider a dedicated read model rather than using the
+write-side entity."
+```
+
+---
+
+## PHASE 11 — BEFORE YOU SHIP
+
+### Prompt 11.1 — Pre-launch checklist
+
+```
+Perform a pre-launch review of [system name] covering:
+
+1. SECURITY REVIEW
+   - Run the code-quality-check skill on every file
+   - Check every auth endpoint for user enumeration risk
+   - Check every external API call — is any sensitive data sent?
+   - Check all log statements — is any PII logged?
+   - Check all error responses — is any internal detail exposed?
+
+2. RESILIENCE REVIEW
+   - For each external dependency: what happens when it is down for 30 seconds? 5 minutes? permanently?
+   - Is there a circuit breaker or graceful degradation beyond retry?
+   - What is the blast radius of each dependency failure?
+
+3. OBSERVABILITY REVIEW
+   - Can you trace a complete request from API entry to database and back using only logs?
+   - Does every log line include the correlation ID?
+   - Are the health check endpoints correctly wired?
+   - What is the first dashboard you would look at if the system went silent at 2am?
+
+4. CONFIGURATION REVIEW
+   - Is there any config that, if missing, fails silently rather than at startup?
+   - Are all secrets git-ignored?
+   - Is the UAT config using token replacement syntax for all secrets?
+
+5. DOCUMENTATION REVIEW
+   - Does the README have: what it does, one-command startup, test instructions, environment table?
+   - Is every API endpoint documented in Swagger with all status codes?
+
+Produce a table: item, status (PASS/FAIL/REVIEW), action needed.
+```
+
+---
+
+### Prompt 11.2 — Define your metrics baseline
+
+```
+Before going live with [system name], define the metrics baseline.
+
+Generate a metrics definition document covering:
+
+DELIVERY METRICS (measure from day 1 of development):
+- How to measure PR cycle time
+- How to measure quality gate pass rate at first submission
+- How to measure build failure rate
+
+SYSTEM HEALTH METRICS (measure from day 1 in production):
+- What structured log fields to query for error rate
+- What structured log fields to query for [external service] failure rate
+- What the P99 response time target is and how to measure it
+- What a "normal" vs "concerning" value is for each metric
+
+AI TOOLING METRICS (measure per sprint):
+- How to count quality gate violations per developer
+- Which gates fail most often (tells you where to improve the context file)
+- How to track onboarding time to first PR
+
+For each metric: name, how to measure it, what a bad value looks like, what action to take.
+```
+
+---
+
+## REUSABLE PROMPT PATTERNS
+
+> These patterns work for any project at any phase.
+
+---
+
+### Pattern: "What am I missing?"
+
+```
+I have just [described/built/designed] [thing].
+
+Before I move on, what am I most likely missing that:
+1. Would cause a production bug
+2. Would cause a security vulnerability
+3. Would cause a bad developer experience for the next person
+4. I would regret not catching in code review
+
+Be specific — give me the scenario, not just the category.
+```
+
+---
+
+### Pattern: "Defend the tradeoff"
+
+```
+I chose [approach A] over [approach B] for [component].
+
+Play devil's advocate:
+1. What is the strongest argument that approach B was actually better?
+2. At what scale or team size does approach A start to break down?
+3. What is the single most likely failure mode of approach A that approach B would have avoided?
+
+I want to understand what I gave up, not just confirmation that I chose correctly.
+```
+
+---
+
+### Pattern: "Review for the 3am engineer"
+
+```
+Review [component/file] from the perspective of an on-call engineer who has never
+seen this codebase and is woken up at 3am because this component is failing.
+
+Tell me:
+1. Is it obvious from the logs what went wrong?
+2. Is it obvious from the code what this component is supposed to do?
+3. Is there anything that would cause confusion or a wrong assumption under pressure?
+4. What information is missing that would help them fix it faster?
+```
+
+---
+
+### Pattern: "Security adversarial review"
+
+```
+Review [component] as if you are an attacker looking for vulnerabilities.
+
+Specifically check:
+1. Can any error message reveal information about internal state or valid users?
+2. Can any input field be used for injection (SQL, command, log injection)?
+3. Is there any timing difference in responses that could be used for enumeration?
+4. Can any endpoint be called without auth that should require it?
+5. Is any sensitive data logged, cached, or included in a response where it shouldn't be?
+
+For each finding: severity (Critical/High/Medium), how to exploit it, how to fix it.
+```
+
+---
+
+### Pattern: "Explain like I'll defend this in an interview"
+
+```
+Explain [technical decision] in a way that:
+1. A non-technical stakeholder could understand the business reason
+2. A senior engineer would find technically rigorous
+3. I could defend if asked "why didn't you just do [simpler alternative]?"
+
+Include: what problem it solves, what it costs, what alternatives exist, and
+why this was the right choice for this specific project and team.
+```
+
+---
+
+## QUICK REFERENCE — Phase Order
+
+```
+Phase 0:  Think before you prompt (no AI yet)
+Phase 1:  Context file + quality gates → before any code
+Phase 2:  System design + API contract + data model
+Phase 3:  Project scaffold + environment config
+Phase 4:  Domain layer (entity → interface → tests)
+Phase 5:  Application layer (command → query → tests)
+Phase 6:  Infrastructure layer (repo → external service → DI)
+Phase 7:  API layer (controller → exception handler → middleware)
+Phase 8:  Integration tests
+Phase 9:  Observability + Docker
+Phase 10: Team AI skills
+Phase 11: Pre-launch + metrics baseline
+```
+
+---
+
+## THE GOLDEN RULES OF AI-ASSISTED DEVELOPMENT
+
+```
+1. Context first, code second — never generate code without a context file
+2. Test the real API on day one — never trust AI-generated field names for external APIs
+3. Wrong patterns become rules — every AI mistake goes into the context file
+4. Human approval before generation — every skill has an approval gate
+5. Verify, don't assume — run the tests, check the edge cases, call the endpoints
+6. You own every line — review every AI suggestion as if a junior wrote it
+7. Metrics from the start — define what "working" looks like before you build it
+8. Security is not a phase — it is in every prompt, every review, every gate
+```
+
+---
+
+*Created: 2026-06-11*
+*Use this playbook for every new project. Update it as you learn.*
