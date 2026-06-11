@@ -1,4 +1,4 @@
-# Capstone Logistics — Coding Standards
+#   — Coding Standards
 
 > **Purpose:** This file defines the concrete coding rules that all implementation work must follow.
 > It is referenced by AI skills (e.g., `implement-user-story`) during Phase 4 and Phase 5.
