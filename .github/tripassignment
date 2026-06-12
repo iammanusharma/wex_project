@@ -1,0 +1,148 @@
+4. Trip assignment implementation steps
+Step 1: Define MVP out loud
+
+Say this:
+
+“I will build a simple manager and driver workflow. The manager creates trips. The AI recommends the best driver. The manager can accept or override the recommendation. The driver can view and accept the trip. Every important action is logged for audit.”
+
+This sounds mature and product-focused.
+
+Step 2: Backend API
+
+Create APIs like:
+
+GET /api/drivers
+GET /api/trips
+POST /api/trips
+POST /api/trips/{tripId}/recommend-driver
+POST /api/trips/{tripId}/assign
+GET /api/drivers/{driverId}/assignments
+POST /api/assignments/{assignmentId}/accept
+GET /api/auditlogs
+
+Implementation order:
+
+Create entities.
+Create DbContext.
+Seed sample drivers.
+Build trip CRUD.
+Build recommendation endpoint.
+Build assignment endpoint.
+Write audit log on create, recommend, assign, accept.
+Step 3: AI matching logic
+
+For speed, use a hybrid approach.
+
+First calculate a deterministic score:
+
+Availability match: 40 points
+Required skill match: 25 points
+Low workload: 20 points
+Location match: 10 points
+Driver rating: 5 points
+
+Then use GPT to explain the recommendation.
+
+Strong design decision:
+
+“I would not let GPT directly assign the driver. I would use rules to calculate a transparent score, and GPT to generate a human-readable explanation. This improves trust and auditability.”
+
+That is a very strong architect-level answer.
+
+Step 4: UI pages
+
+Keep UI simple.
+
+Manager Dashboard
+- List trips
+- Create trip
+- Recommend driver button
+- Assign driver button
+- AI explanation
+
+Driver Dashboard
+- My assigned trips
+- Accept / reject button
+
+Audit Page
+- List audit events
+
+Do not over-design UI. Working flow is better than beautiful UI.
+
+5. Prompt to ask AI to build trip assignment app
+
+Use this prompt inside Copilot / Claude / ChatGPT during the event:
+
+I need to build a timed hackathon MVP for an AI-powered trip assignment system.
+
+Tech stack:
+- .NET Core Web API
+- Entity Framework Core
+- SQLite or SQL Server
+- React or Angular front end
+- Simple AI matching service
+- Audit logging
+
+Build a clean MVP with these roles:
+1. Manager can create trips, view trips, request AI driver recommendation, and assign a driver.
+2. Driver can view assigned trips and accept or reject them.
+3. System should store drivers, trips, assignments, and audit logs.
+4. AI recommendation should select the best driver based on availability, skill match, current workload, location, and rating.
+5. The recommendation should return driverId, score, and explanation.
+6. Every create, recommend, assign, accept, and reject action should create an audit log.
+
+Please generate:
+- Data models
+- DbContext
+- API endpoints
+- Seed data
+- Service class for matching
+- Simple front-end pages
+- README with how to run
+- Short demo script
+
+Keep the code simple, readable, and suitable for a 3-hour hackathon.
+6. Prompt to generate the AI matching service only
+Create a .NET service called DriverMatchingService.
+
+Input:
+- Trip object with pickup location, drop location, priority, and required skill.
+- List of drivers with location, availability, skill level, current load, and rating.
+
+Output:
+- Recommended driver
+- Score
+- Explanation
+
+Scoring rules:
+- Available driver gets 40 points.
+- Matching skill gets 25 points.
+- Lower workload gets up to 20 points.
+- Same location gets 10 points.
+- Rating contributes up to 5 points.
+
+Also generate a plain-English explanation of why the driver was selected.
+
+Keep the code simple and testable.
+7. Prompt to generate audit logging
+Add audit logging to this .NET Web API.
+
+Create an AuditLog entity with:
+- Id
+- EntityName
+- EntityId
+- Action
+- PerformedBy
+- Details
+- CreatedAt
+
+Create an AuditLogService with a LogAsync method.
+
+Add audit logs when:
+- Trip is created
+- AI recommendation is generated
+- Driver is assigned
+- Driver accepts assignment
+- Driver rejects assignment
+
+Keep the implementation simple and readable.
