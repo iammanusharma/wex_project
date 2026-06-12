@@ -1,0 +1,152 @@
+8. Example 2: Portfolio-management full-stack app
+Problem idea
+
+A financial advisor wants to manage client portfolios. They need to create clients, add assets, track holdings, and view portfolio value. AI can summarize portfolio risk or suggest diversification.
+
+MVP features
+Client management
+Portfolio CRUD
+Asset / holding CRUD
+Transaction history
+Portfolio summary
+AI risk summary
+Audit log
+
+Tables:
+
+Clients
+- Id
+- Name
+- Email
+- RiskProfile
+
+Portfolios
+- Id
+- ClientId
+- Name
+- Objective
+
+Holdings
+- Id
+- PortfolioId
+- Symbol
+- AssetType
+- Quantity
+- CurrentPrice
+
+Transactions
+- Id
+- PortfolioId
+- Symbol
+- Type
+- Quantity
+- Price
+- CreatedAt
+
+AuditLogs
+- Id
+- EntityName
+- EntityId
+- Action
+- Details
+- CreatedAt
+
+APIs:
+
+GET /api/clients
+POST /api/clients
+GET /api/portfolios
+POST /api/portfolios
+GET /api/portfolios/{id}
+POST /api/portfolios/{id}/holdings
+PUT /api/holdings/{id}
+DELETE /api/holdings/{id}
+GET /api/portfolios/{id}/summary
+POST /api/portfolios/{id}/ai-risk-summary
+GET /api/auditlogs
+9. Prompt to build portfolio app
+I need to build a timed hackathon MVP for a portfolio-management app.
+
+Tech stack:
+- .NET Core Web API
+- Entity Framework Core
+- SQLite or SQL Server
+- React or Angular front end
+
+Build these features:
+1. Create and list clients.
+2. Create and list portfolios for a client.
+3. Add, update, and delete holdings.
+4. Show portfolio summary with total value by asset type.
+5. Add transaction history when holdings are changed.
+6. Add audit logging for create, update, and delete actions.
+7. Add an AI risk summary endpoint that explains portfolio risk based on asset allocation.
+
+Entities:
+- Client
+- Portfolio
+- Holding
+- Transaction
+- AuditLog
+
+Please generate:
+- Data models
+- DbContext
+- API endpoints
+- Seed data
+- Portfolio summary logic
+- AI risk summary service
+- Simple React or Angular UI
+- README and demo script
+
+Keep the code simple, readable, and suitable for a 3-hour hackathon.
+10. AI feature for portfolio app
+
+Do not make AI too complex.
+
+Use this simple AI capability:
+
+“AI summarizes the portfolio risk based on asset allocation, concentration, and client risk profile.”
+
+Example response:
+
+This portfolio has moderate risk. 
+It has high concentration in technology stocks and limited exposure to bonds. 
+For a conservative client, this may be too aggressive. 
+Consider adding more diversified assets or fixed-income exposure.
+
+Strong design explanation:
+
+“I would not use AI to make financial decisions automatically. I would use it as an advisor-assist feature. The final decision stays with the human advisor.”
+
+This is a very strong safety and governance point.
+
+11. What to say while explaining your thought process
+
+Use this talk script:
+
+“I started by identifying the core users and the main workflow. Then I reduced the scope to an MVP that can be completed in the available time.
+
+My first priority was an end-to-end working flow: UI, API, database, and basic validation.
+
+After that, I added the AI feature. I kept AI bounded and explainable. For example, in trip assignment, I used scoring rules for decision logic and GPT for explanation.
+
+I also added audit logging because in enterprise workflows, traceability is important.
+
+If I had more time, I would add authentication, role-based access, better error handling, automated tests, observability, and deployment to Azure.”
+
+12. What they may evaluate
+
+They are likely checking:
+
+Can you understand the problem quickly?
+Can you reduce scope?
+Can you build something working?
+Can you use AI tools effectively?
+Can you explain your decisions?
+Can you think about security and auditability?
+Can you connect technology to business value?
+
+Your best sentence:
+
+“I intentionally kept the implementation simple, but I designed it with enterprise concerns in mind: role separation, audit logs, explainability, validation, and future cloud deployment.”
