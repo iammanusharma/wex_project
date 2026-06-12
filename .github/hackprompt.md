@@ -1,5 +1,6 @@
 # Hack-to-Hire Prompts Playbook
 ## AI-Assisted Development Under Time Pressure
+https://chatgpt.com/share/e/6a2b5d36-4120-8004-b64c-99de971ab058
 
 > This is the **condensed, time-boxed version** of the full `ai-project-prompts-playbook.md`.
 > Designed for 4–8 hour hackathons where you need a working demo AND must demonstrate
